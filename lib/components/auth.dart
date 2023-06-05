@@ -1,5 +1,3 @@
-import 'package:dart_appwrite/models.dart';
-import 'package:dart_appwrite/dart_appwrite.dart' as Users;
 import 'package:shared_preferences/shared_preferences.dart';
 
 import 'package:appwrite/appwrite.dart';
