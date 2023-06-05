@@ -437,6 +437,9 @@ class _ExpenseTrackerHomePageState extends State<ExpenseTrackerHomePage> {
                         height: 10,
                       ),
                       lastTransdata(),
+                      SizedBox(
+                        height: 80,
+                      ),
                     ],
                   ),
                 ))));
@@ -532,6 +535,7 @@ class _ExpenseTrackerHomePageState extends State<ExpenseTrackerHomePage> {
           //   //   borderRadius: BorderRadius.circular(16.0),
           //   // ),
           // ),
+          SizedBox(height: MediaQuery.of(context).size.height / 2),
           ElevatedButton(
               onPressed: () {
                 AuthService().logout();

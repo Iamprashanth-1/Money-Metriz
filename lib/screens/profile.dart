@@ -93,7 +93,7 @@ class _UserProfilePageState extends State<UserProfilePage> {
                 color: Colors.black54,
               ),
               'password'),
-          SizedBox(height: 500),
+          SizedBox(height: MediaQuery.of(context).size.height / 2.5),
           Center(
               child: Column(
             children: [

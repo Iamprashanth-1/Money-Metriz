@@ -7,6 +7,7 @@ import 'screens/logsign.dart';
 import 'screens/home.dart';
 import 'components/auth.dart';
 import '/components/app_theme.dart';
+import 'screens/splash.dart';
 
 void main() {
   runApp(const MyApps());
@@ -81,7 +82,7 @@ class MyApps extends StatelessWidget {
         //       ),
         //     )),
         // home: Auth(),
-        home: BaseScreen());
+        home: getsplash());
   }
 }
 

@@ -173,7 +173,7 @@ class _ChartScreenState extends State<BeautifulChart> {
     });
     final List<ChartData> data1 = [];
     final List<ChartDatatC> data2 = [];
-
+    final List<ChartCategoryDataByMonth> chardataCategories = [];
     final List<ChartDatamoney> data_credit = [];
     final List<ChartDatamoney> data_debit = [];
     var tempcd = {'CREDIT': 0, 'DEBIT': 0, 'tC': 0};
@@ -192,10 +192,15 @@ class _ChartScreenState extends State<BeautifulChart> {
       var currentdate = datestrip.toString().split(' ')[0];
 
       if (tempdata_category.containsKey(map['category'])) {
-        tempdata_category[map['category']] =
-            tempdata_category[map['category']]! + 1;
+        if (map['transactionType'] == 'DEBIT')
+          tempdata_category[map['category']] =
+              tempdata_category[map['category']]! + map['amount'];
       } else {
-        tempdata_category[map['category']] = 1;
+        if (map['transactionType'] == 'DEBIT') {
+          tempdata_category[map['category']] = map['amount'];
+        } else {
+          tempdata_category[map['category']] = 0;
+        }
       }
 
       if (totaltransactionsdailycount.containsKey(currentdate)) {
@@ -255,7 +260,7 @@ class _ChartScreenState extends State<BeautifulChart> {
     }
 
     for (var tempcat in tempdata_category.keys) {
-      chartCategoryData.add(ChartCategoryDataByMonth(
+      chardataCategories.add(ChartCategoryDataByMonth(
           tempcat, tempdata_category[tempcat]!, generateRandomColor()));
     }
     // print(tempmap);
@@ -308,6 +313,7 @@ class _ChartScreenState extends State<BeautifulChart> {
     setState(() {
       chartData = data1;
       chartDatatC = data2;
+      chartCategoryData = chardataCategories;
       ChartDatamoneiC = data_credit;
       ChartDatamoneiD = data_debit;
       tCC_C += total_credit_range;
@@ -345,6 +351,12 @@ class _ChartScreenState extends State<BeautifulChart> {
     // });
   }
 
+  Future<void> _refreshData() async {
+    // Simulate a delay of 2 seconds
+    await Future.delayed(Duration(seconds: 2));
+    getfulldataofuser();
+  }
+
   @override
   void dispose() {
     super.dispose();
@@ -353,12 +365,8 @@ class _ChartScreenState extends State<BeautifulChart> {
   @override
   Widget build(BuildContext context) {
     return SafeArea(
-        child: NotificationListener<OverscrollIndicatorNotification>(
-            onNotification: (overscroll) {
-              overscroll
-                  .disallowIndicator(); // disable the default overscroll glow effect
-              return false; // return false to allow the notification to propagate
-            },
+        child: RefreshIndicator(
+            onRefresh: _refreshData,
             child: SingleChildScrollView(
                 primary: false,
                 padding: EdgeInsets.all(defaultPadding),
@@ -464,7 +472,7 @@ class _ChartScreenState extends State<BeautifulChart> {
                                       name: 'Debits',
                                       dataLabelMapper:
                                           (ChartCategoryDataByMonth data, _) =>
-                                              '${data.y}%',
+                                              '${data.y}',
                                       dataLabelSettings:
                                           DataLabelSettings(isVisible: true)),
                                 ]))),
