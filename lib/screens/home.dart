@@ -62,6 +62,8 @@ class _ExpenseTrackerHomePageState extends State<ExpenseTrackerHomePage> {
     '12': false
   };
   Map<String, dynamic> _options_years = {'2023': false};
+  var checkBudgetAdded = false;
+  final TextEditingController _controllerBudgetAdded = TextEditingController();
 
   DateTime datenow = DateTime.now();
 
@@ -82,6 +84,7 @@ class _ExpenseTrackerHomePageState extends State<ExpenseTrackerHomePage> {
       }
     }
     checkcurrentselectmonthyear();
+    checkbudgetaddedinauth();
     lasttransactions(gettotaltrans);
     // lasttransactions(getmonthlybugetid);
     AuthService().getuser();
@@ -95,6 +98,14 @@ class _ExpenseTrackerHomePageState extends State<ExpenseTrackerHomePage> {
   @override
   void dispose() {
     super.dispose();
+  }
+
+  void checkbudgetaddedinauth() async {
+    var kdr = await AuthService().checkmonthlybudgetadded(
+        DateTime.now().month.toString() + DateTime.now().year.toString());
+    setState(() {
+      checkBudgetAdded = kdr;
+    });
   }
 
   void checkcurrentselectmonthyear() {
@@ -122,11 +133,12 @@ class _ExpenseTrackerHomePageState extends State<ExpenseTrackerHomePage> {
         return AlertDialog(
           title: Text('Enter Budget For This Month'),
           content: TextField(
-            onChanged: (value) {
-              setState(() {
-                MonthlyBudget = value;
-              });
-            },
+            controller: _controllerBudgetAdded,
+            // onChanged: (value) {
+            //   setState(() {
+            //     MonthlyBudget = value;
+            //   });
+            // },
             decoration: InputDecoration(hintText: 'Enter text here'),
           ),
           actions: <Widget>[
@@ -147,7 +159,7 @@ class _ExpenseTrackerHomePageState extends State<ExpenseTrackerHomePage> {
                   await AuthService().insertDocument(data: {
                     'monthYear': DateTime.now().month.toString() +
                         DateTime.now().year.toString(),
-                    'budgetAmount': MonthlyBudget,
+                    'budgetAmount': _controllerBudgetAdded.text,
                     'createdAt': DateTime.now().toString(),
                     'updatedAt': DateTime.now().toString()
                   }, collectionId: monthlyBudgetCollectionId);
@@ -358,6 +370,11 @@ class _ExpenseTrackerHomePageState extends State<ExpenseTrackerHomePage> {
   }
 
   Widget appBody() {
+    if (checkBudgetAdded == false) {
+      WidgetsBinding.instance.addPostFrameCallback((_20) {
+        _showBudgetDialog();
+      });
+    }
     return RefreshIndicator(
         onRefresh: _refreshData,
         child: SafeArea(
