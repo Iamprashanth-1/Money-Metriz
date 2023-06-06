@@ -3,7 +3,8 @@
 This is an Money Metriz app built using Flutter and integrated with the appWrite SDK for transaction tracking and analytics. The app allows users to track their expenses, view transaction details, and analyze their spending patterns. This Read Me document provides instructions on how to clone the project and set it up for development or testing purposes.
 
 ## App Flow
-![Arch](https://github.com/Iamprashanth-1/Money-Metriz/blob/master/assets/images/app-arch.png)
+![Arch](./assets/images/app-arch.png)
+
 
 ## Prerequisites
 
