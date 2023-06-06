@@ -9,6 +9,7 @@ import '../../../components/account_check.dart';
 import 'login.dart';
 import '../components/auth.dart';
 import 'package:flutter_svg/flutter_svg.dart';
+import '../utils.dart';
 
 class SignUpScreenTopImage extends StatelessWidget {
   const SignUpScreenTopImage({
@@ -146,6 +147,8 @@ class _signUpScreenState extends State<SignUpScreen> {
             name: name_contr.text,
             email: email_contr.text,
             password: password_contr.text);
+        StatusMessagePopup(message: 'Signed Up', duration: Duration(seconds: 2))
+            .show(context);
         Navigator.pushReplacement(
           context,
           MaterialPageRoute(builder: (context) => LoginScreen()),
