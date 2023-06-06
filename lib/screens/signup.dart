@@ -186,6 +186,10 @@ class _signUpScreenState extends State<SignUpScreen> {
                               padding: const EdgeInsets.symmetric(
                                   horizontal: defaultPadding),
                               child: TextFormField(
+                                scrollPadding: EdgeInsets.only(
+                                    bottom: MediaQuery.of(context)
+                                        .viewInsets
+                                        .bottom),
                                 keyboardType: TextInputType.name,
                                 controller: name_contr,
                                 textInputAction: TextInputAction.next,
@@ -212,6 +216,10 @@ class _signUpScreenState extends State<SignUpScreen> {
                               padding: const EdgeInsets.symmetric(
                                   horizontal: defaultPadding),
                               child: TextFormField(
+                                scrollPadding: EdgeInsets.only(
+                                    bottom: MediaQuery.of(context)
+                                        .viewInsets
+                                        .bottom),
                                 controller: email_contr,
                                 keyboardType: TextInputType.emailAddress,
                                 textInputAction: TextInputAction.next,
@@ -239,6 +247,9 @@ class _signUpScreenState extends State<SignUpScreen> {
                             padding: const EdgeInsets.symmetric(
                                 horizontal: defaultPadding),
                             child: TextFormField(
+                              scrollPadding: EdgeInsets.only(
+                                  bottom:
+                                      MediaQuery.of(context).viewInsets.bottom),
                               controller: password_contr,
                               textInputAction: TextInputAction.done,
                               obscureText: _obscureText,
@@ -304,6 +315,10 @@ class _signUpScreenState extends State<SignUpScreen> {
                                 ),
                               );
                             },
+                          ),
+                          SizedBox(
+                            height:
+                                MediaQuery.of(context).viewInsets.bottom + 20,
                           ),
                           SizedBox(height: defaultPadding * 2),
                         ],

@@ -109,91 +109,71 @@ class _LoginState extends State<LoginScreen> {
                   key: _formKey,
                   child: Column(
                     children: [
-                      Focus(
-                          onFocusChange: (hasFocus) {
-                            if (hasFocus) {
-                              _scrollController.animateTo(
-                                _scrollController.position.maxScrollExtent,
-                                duration: Duration(milliseconds: 500),
-                                curve: Curves.ease,
-                              );
-                            }
-                          },
-                          // Spacer(),
-                          child: Padding(
-                              padding: const EdgeInsets.symmetric(
-                                  horizontal: defaultPadding),
-                              child: TextFormField(
-                                keyboardType: TextInputType.emailAddress,
-                                textInputAction: TextInputAction.next,
-                                controller: email_contr,
-                                cursorColor: kPrimaryColor,
-                                validator: (email) {
-                                  if (email == null || email.isEmpty) {
-                                    return 'Please enter your Email';
-                                  }
-                                },
-                                onSaved: (email) {
-                                  email = email!;
-                                },
-                                decoration: InputDecoration(
-                                  hintText: "Your email",
-                                  prefixIcon: Padding(
-                                    padding:
-                                        const EdgeInsets.all(defaultPadding),
-                                    child: Icon(Icons.person),
-                                  ),
-                                ),
-                              ))),
-                      SizedBox(height: defaultPadding),
-                      Focus(
-                          onFocusChange: (hasFocus) {
-                            if (hasFocus) {
-                              _scrollController.animateTo(
-                                _scrollController.position.maxScrollExtent,
-                                duration: Duration(milliseconds: 500),
-                                curve: Curves.easeOut,
-                              );
-                            }
-                          },
-                          //, Spacer(),
-                          child: Padding(
-                            padding: const EdgeInsets.symmetric(
-                                horizontal: defaultPadding),
-                            child: TextFormField(
-                              textInputAction: TextInputAction.done,
-                              obscureText: _obscureText,
-                              controller: password_contr,
-                              cursorColor: kPrimaryColor,
-                              validator: (value) {
-                                if (value == null || value.isEmpty) {
-                                  return 'Please enter your Password';
-                                }
-                              },
-                              onSaved: (password) {
-                                password = password!;
-                              },
-                              decoration: InputDecoration(
-                                suffixIcon: IconButton(
-                                  icon: Icon(
-                                    _obscureText
-                                        ? Icons.visibility
-                                        : Icons.visibility_off,
-                                  ),
-                                  onPressed: () {
-                                    setState(() {
-                                      _obscureText = !_obscureText;
-                                    });
-                                  },
-                                ),
-                                hintText: "Your password",
-                                prefixIcon: Padding(
-                                  padding: const EdgeInsets.all(defaultPadding),
-                                  child: Icon(Icons.lock),
-                                ),
+                      // Spacer(),
+                      Padding(
+                          padding: const EdgeInsets.symmetric(
+                              horizontal: defaultPadding),
+                          child: TextFormField(
+                            keyboardType: TextInputType.emailAddress,
+                            textInputAction: TextInputAction.next,
+                            controller: email_contr,
+                            cursorColor: kPrimaryColor,
+                            validator: (email) {
+                              if (email == null || email.isEmpty) {
+                                return 'Please enter your Email';
+                              }
+                            },
+                            onSaved: (email) {
+                              email = email!;
+                            },
+                            decoration: InputDecoration(
+                              hintText: "Your email",
+                              prefixIcon: Padding(
+                                padding: const EdgeInsets.all(defaultPadding),
+                                child: Icon(Icons.person),
                               ),
                             ),
                           )),
+                      SizedBox(height: defaultPadding),
+                      Padding(
+                        padding: const EdgeInsets.symmetric(
+                            horizontal: defaultPadding),
+                        child: TextFormField(
+                          scrollPadding: EdgeInsets.only(
+                              bottom: MediaQuery.of(context).viewInsets.bottom),
+                          textInputAction: TextInputAction.done,
+                          obscureText: _obscureText,
+                          controller: password_contr,
+                          cursorColor: kPrimaryColor,
+                          validator: (value) {
+                            if (value == null || value.isEmpty) {
+                              return 'Please enter your Password';
+                            }
+                          },
+                          onSaved: (password) {
+                            password = password!;
+                          },
+                          decoration: InputDecoration(
+                            suffixIcon: IconButton(
+                              icon: Icon(
+                                _obscureText
+                                    ? Icons.visibility
+                                    : Icons.visibility_off,
+                              ),
+                              onPressed: () {
+                                setState(() {
+                                  _obscureText = !_obscureText;
+                                });
+                              },
+                            ),
+                            hintText: "Your password",
+                            prefixIcon: Padding(
+                              padding: const EdgeInsets.all(defaultPadding),
+                              child: Icon(Icons.lock),
+                            ),
+                          ),
+                        ),
+                      ),
                       const SizedBox(height: defaultPadding),
                       ElevatedButton(
                         onPressed: _isLoading ? null : _validateLogin,
@@ -232,6 +212,9 @@ class _LoginState extends State<LoginScreen> {
                             ),
                           );
                         },
+                      ),
+                      SizedBox(
+                        height: MediaQuery.of(context).viewInsets.bottom + 20,
                       ),
                       SizedBox(height: defaultPadding * 2)
                     ],
