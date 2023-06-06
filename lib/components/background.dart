@@ -17,7 +17,7 @@ class Background extends StatelessWidget {
       resizeToAvoidBottomInset: false,
       body: Container(
         width: double.infinity,
-        height: MediaQuery.of(context).size.height,
+        // height: MediaQuery.of(context).size.height,
         child: Stack(
           alignment: Alignment.center,
           children: <Widget>[

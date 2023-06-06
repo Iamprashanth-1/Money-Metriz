@@ -98,6 +98,8 @@ class _BaseScreenState extends State<BaseScreen> {
 
   getuserId() async {
     var da = await AuthService().getuser();
+    // var ds = await AuthService().getAuthStatus();
+    // print(ds);
     setState(() {
       if (da.length > 0) {
         isuserLoggedin = true;

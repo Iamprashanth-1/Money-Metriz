@@ -1,8 +1,13 @@
+import 'dart:convert';
+
 import 'package:flutter/material.dart';
 import '../components/auth.dart';
 import '../utils.dart';
 import 'package:package_info_plus/package_info_plus.dart';
 import 'login.dart';
+import 'package:file_picker/file_picker.dart';
+import 'dart:typed_data';
+import '../constants.dart';
 
 class UserProfilePage extends StatefulWidget {
   @override
@@ -15,6 +20,8 @@ class _UserProfilePageState extends State<UserProfilePage> {
   String _password = '';
   String _email = '';
   String _version = 'Unknown';
+  // String userProfileUrl = '';
+  Uint8List? userProfileUrl;
 
   getuserrelateddata() async {
     Map _userdata = await AuthService().getuserdata();
@@ -32,8 +39,17 @@ class _UserProfilePageState extends State<UserProfilePage> {
     });
   }
 
+  Future _getProfileView() async {
+    var getFeildId = await AuthService().getStorageDocument(storageFeildId);
+    var profileUrl = await AuthService().getProfileView(getFeildId);
+    setState(() {
+      userProfileUrl = profileUrl;
+    });
+  }
+
   void initState() {
     super.initState();
+    _getProfileView();
     getuserrelateddata();
     _getVersion();
   }
@@ -54,10 +70,47 @@ class _UserProfilePageState extends State<UserProfilePage> {
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceEvenly,
             children: <Widget>[
-              CircleAvatar(
-                backgroundImage: AssetImage('assets/images/img_user.png'),
-                radius: 50,
-              ),
+              Stack(children: [
+                userProfileUrl == null
+                    ? CircleAvatar(
+                        backgroundImage:
+                            ExactAssetImage('assets/images/img_user_3.png'),
+                        radius: 50,
+                      )
+                    : CircleAvatar(
+                        backgroundImage: MemoryImage(userProfileUrl!),
+                        radius: 50,
+                      ),
+                Positioned(
+                    top: -4,
+                    right: -10,
+                    child: IconButton(
+                        onPressed: () async {
+                          FilePickerResult? result = await FilePicker.platform
+                              .pickFiles(withData: true);
+                          if (result != null) {
+                            PlatformFile file = result.files.first;
+                            // print(file.bytes);
+                            var storageId = await AuthService()
+                                .uploadUserImage(file.bytes, file.name);
+                            if (storageId != null) {
+                              await AuthService().insertDocument(data: {
+                                'feildId': storageId,
+                              }, collectionId: storageFeildId);
+                            }
+                            StatusMessagePopup(
+                                    message: 'Profile Pic Updated',
+                                    duration: Duration(seconds: 2))
+                                .show(context);
+                            // print(file.name);
+                            // print(file.bytes);
+                            // upload the file to your server or cloud storage
+                          } else {
+                            // user canceled the file picker
+                          }
+                        },
+                        icon: Icon(Icons.edit)))
+              ]),
               Text(
                 '$_username',
                 style: TextStyle(
@@ -121,6 +174,24 @@ class _UserProfilePageState extends State<UserProfilePage> {
         ],
       ),
     ));
+  }
+
+  Widget profilePic() {
+    return ElevatedButton(
+      onPressed: () async {
+        FilePickerResult? result = await FilePicker.platform.pickFiles();
+        if (result != null) {
+          PlatformFile file = result.files.first;
+          AuthService().uploadUserImage(file.bytes, file.name);
+          // print(file.name);
+          // print(file.bytes);
+          // upload the file to your server or cloud storage
+        } else {
+          // user canceled the file picker
+        }
+      },
+      child: Text('Select File'),
+    );
   }
 
   Widget getcards(String wtext, icon, String updatetext) {

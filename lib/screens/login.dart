@@ -60,6 +60,8 @@ class _LoginState extends State<LoginScreen> {
   final _formKey = GlobalKey<FormState>();
   bool _isLoading = false;
   String _errorMessage = '';
+  final _scrollController = ScrollController();
+  bool _obscureText = true;
 
   void _validateLogin() async {
     if (_formKey.currentState!.validate()) {
@@ -77,122 +79,165 @@ class _LoginState extends State<LoginScreen> {
       } catch (e) {
         setState(() {
           _isLoading = false;
-          _errorMessage = e.toString();
+          // _errorMessage = e.toString();
+          _errorMessage = 'Invalid Email or Password';
         });
       }
     }
   }
 
   @override
+  void dispose() {
+    _scrollController.dispose();
+    super.dispose();
+  }
+
+  @override
   Widget build(BuildContext context) {
     return Background(
       child: SingleChildScrollView(
-        child: Row(
+        controller: _scrollController,
+        child: Column(
+          // mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            Expanded(
-              child: LoginScreenTopImage(),
-            ),
-            Expanded(
-              child: Column(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  SizedBox(
-                      width: 450,
-                      child: Form(
-                        key: _formKey,
-                        child: Column(
-                          children: [
-                            TextFormField(
-                              keyboardType: TextInputType.emailAddress,
-                              textInputAction: TextInputAction.next,
-                              controller: email_contr,
-                              cursorColor: kPrimaryColor,
-                              validator: (email) {
-                                if (email == null || email.isEmpty) {
-                                  return 'Please enter your Email';
-                                }
-                              },
-                              onSaved: (email) {
-                                email = email!;
-                              },
-                              decoration: InputDecoration(
-                                hintText: "Your email",
-                                prefixIcon: Padding(
-                                  padding: const EdgeInsets.all(defaultPadding),
-                                  child: Icon(Icons.person),
-                                ),
-                              ),
-                            ),
-                            Padding(
+            SizedBox(height: defaultPadding * 8),
+            LoginScreenTopImage(),
+            Row(
+              children: [
+                Expanded(
+                    child: Form(
+                  key: _formKey,
+                  child: Column(
+                    children: [
+                      Focus(
+                          onFocusChange: (hasFocus) {
+                            if (hasFocus) {
+                              _scrollController.animateTo(
+                                _scrollController.position.maxScrollExtent,
+                                duration: Duration(milliseconds: 500),
+                                curve: Curves.ease,
+                              );
+                            }
+                          },
+                          // Spacer(),
+                          child: Padding(
                               padding: const EdgeInsets.symmetric(
-                                  vertical: defaultPadding),
+                                  horizontal: defaultPadding),
                               child: TextFormField(
-                                textInputAction: TextInputAction.done,
-                                obscureText: true,
-                                controller: password_contr,
+                                keyboardType: TextInputType.emailAddress,
+                                textInputAction: TextInputAction.next,
+                                controller: email_contr,
                                 cursorColor: kPrimaryColor,
-                                validator: (value) {
-                                  if (value == null || value.isEmpty) {
-                                    return 'Please enter your Password';
+                                validator: (email) {
+                                  if (email == null || email.isEmpty) {
+                                    return 'Please enter your Email';
                                   }
                                 },
-                                onSaved: (password) {
-                                  password = password!;
+                                onSaved: (email) {
+                                  email = email!;
                                 },
                                 decoration: InputDecoration(
-                                  hintText: "Your password",
+                                  hintText: "Your email",
                                   prefixIcon: Padding(
                                     padding:
                                         const EdgeInsets.all(defaultPadding),
-                                    child: Icon(Icons.lock),
+                                    child: Icon(Icons.person),
                                   ),
+                                ),
+                              ))),
+                      SizedBox(height: defaultPadding),
+                      Focus(
+                          onFocusChange: (hasFocus) {
+                            if (hasFocus) {
+                              _scrollController.animateTo(
+                                _scrollController.position.maxScrollExtent,
+                                duration: Duration(milliseconds: 500),
+                                curve: Curves.easeOut,
+                              );
+                            }
+                          },
+                          //, Spacer(),
+                          child: Padding(
+                            padding: const EdgeInsets.symmetric(
+                                horizontal: defaultPadding),
+                            child: TextFormField(
+                              textInputAction: TextInputAction.done,
+                              obscureText: _obscureText,
+                              controller: password_contr,
+                              cursorColor: kPrimaryColor,
+                              validator: (value) {
+                                if (value == null || value.isEmpty) {
+                                  return 'Please enter your Password';
+                                }
+                              },
+                              onSaved: (password) {
+                                password = password!;
+                              },
+                              decoration: InputDecoration(
+                                suffixIcon: IconButton(
+                                  icon: Icon(
+                                    _obscureText
+                                        ? Icons.visibility
+                                        : Icons.visibility_off,
+                                  ),
+                                  onPressed: () {
+                                    setState(() {
+                                      _obscureText = !_obscureText;
+                                    });
+                                  },
+                                ),
+                                hintText: "Your password",
+                                prefixIcon: Padding(
+                                  padding: const EdgeInsets.all(defaultPadding),
+                                  child: Icon(Icons.lock),
                                 ),
                               ),
                             ),
-                            const SizedBox(height: defaultPadding),
-                            ElevatedButton(
-                              onPressed: _isLoading ? null : _validateLogin,
-                              child: _isLoading
-                                  ? CircularProgressIndicator()
-                                  : Text('Login'),
+                          )),
+                      const SizedBox(height: defaultPadding),
+                      ElevatedButton(
+                        onPressed: _isLoading ? null : _validateLogin,
+                        child: _isLoading
+                            ? CircularProgressIndicator()
+                            : Text('Login'),
+                      ),
+                      if (_errorMessage != null)
+                        Padding(
+                          padding: const EdgeInsets.all(8.0),
+                          child: Text(
+                            _errorMessage,
+                            style: TextStyle(
+                              color: Colors.red,
+                              fontWeight: FontWeight.bold,
                             ),
-                            if (_errorMessage != null)
-                              Padding(
-                                padding: const EdgeInsets.all(8.0),
-                                child: Text(
-                                  _errorMessage,
-                                  style: TextStyle(
-                                    color: Colors.red,
-                                    fontWeight: FontWeight.bold,
-                                  ),
-                                ),
-                              ),
+                          ),
+                        ),
 
-                            // ElevatedButton(
-                            //   onPressed: () async {
-                            //     if (_formKey.currentState!.validate()) {
+                      // ElevatedButton(
+                      //   onPressed: () async {
+                      //     if (_formKey.currentState!.validate()) {
 
-                            //   }
-                            //   },
+                      //   }
+                      //   },
 
-                            const SizedBox(height: defaultPadding),
-                            AlreadyHaveAnAccountCheck(
-                              press: () {
-                                Navigator.push(
-                                  context,
-                                  MaterialPageRoute(
-                                    builder: (context) {
-                                      return SignUpScreen();
-                                    },
-                                  ),
-                                );
+                      const SizedBox(height: defaultPadding),
+                      AlreadyHaveAnAccountCheck(
+                        press: () {
+                          Navigator.push(
+                            context,
+                            MaterialPageRoute(
+                              builder: (context) {
+                                return SignUpScreen();
                               },
                             ),
-                          ],
-                        ),
-                      )),
-                ],
-              ),
+                          );
+                        },
+                      ),
+                      SizedBox(height: defaultPadding * 2)
+                    ],
+                  ),
+                )),
+              ],
             ),
           ],
         ),

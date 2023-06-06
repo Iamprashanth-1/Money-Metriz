@@ -43,6 +43,8 @@ class _ExpenseTrackerHomePageState extends State<ExpenseTrackerHomePage> {
   String currentMonthBudgetDocumentId = '';
   bool _isLoading = false;
   bool _isMonlthyBudgetLoading = false;
+  late DateTime _selectedFromDate;
+  late DateTime _selectedToDate;
 
   String currentSelectedMonth = '';
   String currentSelectedYear = '';
@@ -89,6 +91,8 @@ class _ExpenseTrackerHomePageState extends State<ExpenseTrackerHomePage> {
     // lasttransactions(getmonthlybugetid);
     AuthService().getuser();
     getusernames();
+    _selectedFromDate = datenow.subtract(Duration(days: 15));
+    _selectedToDate = datenow;
 
     // getmonthlybugetid();
 
@@ -101,8 +105,8 @@ class _ExpenseTrackerHomePageState extends State<ExpenseTrackerHomePage> {
   }
 
   void checkbudgetaddedinauth() async {
-    var kdr = await AuthService().checkmonthlybudgetadded(
-        DateTime.now().month.toString() + DateTime.now().year.toString());
+    var kdr = await AuthService()
+        .checkmonthlybudgetadded(currentSelectedMonth + currentSelectedYear);
     setState(() {
       checkBudgetAdded = kdr;
     });
@@ -302,6 +306,7 @@ class _ExpenseTrackerHomePageState extends State<ExpenseTrackerHomePage> {
   int _selectedIndex = 0;
 
   void _onItemTapped(int index) {
+    checkbudgetaddedinauth();
     setState(() {
       _selectedIndex = index;
     });
@@ -517,10 +522,10 @@ class _ExpenseTrackerHomePageState extends State<ExpenseTrackerHomePage> {
               )),
             ]),
             accountEmail: Text(''),
-            currentAccountPicture: CircleAvatar(
-              backgroundColor: Colors.transparent,
-              backgroundImage: ExactAssetImage('assets/images/img_user_3.png'),
-            ),
+            // currentAccountPicture: CircleAvatar(
+            //   backgroundColor: Colors.transparent,
+            //   backgroundImage: ExactAssetImage('assets/images/img_user_3.png'),
+            // ),
             decoration: BoxDecoration(
                 image: DecorationImage(
                     image: AssetImage("assets/images/img_back_noise.png"),
@@ -623,6 +628,8 @@ class _ExpenseTrackerHomePageState extends State<ExpenseTrackerHomePage> {
                             title: Text("${monthMap[key]}"),
                             onChanged: (bool? value) {
                               setState(() {
+                                _options = Map.fromIterable(_options.keys,
+                                    key: (k) => k, value: (_) => false);
                                 _options[key] = value!;
                               });
                             },
@@ -655,6 +662,10 @@ class _ExpenseTrackerHomePageState extends State<ExpenseTrackerHomePage> {
                               title: Text("$key"),
                               onChanged: (bool? value) {
                                 setState(() {
+                                  _options_years = Map.fromIterable(
+                                      _options_years.keys,
+                                      key: (k) => k,
+                                      value: (_) => false);
                                   _options_years[key] = value!;
                                 });
                               },
@@ -689,6 +700,27 @@ class _ExpenseTrackerHomePageState extends State<ExpenseTrackerHomePage> {
         );
       },
     );
+  }
+
+  _showDateRangePicker(BuildContext context) async {
+    final initialDateRange = DateTimeRange(
+      start: _selectedFromDate,
+      end: _selectedToDate,
+    );
+
+    final picked = await showDateRangePicker(
+      context: context,
+      initialDateRange: initialDateRange,
+      firstDate: DateTime(2020),
+      lastDate: DateTime.now(),
+    );
+
+    if (picked != null) {
+      setState(() {
+        _selectedFromDate = picked.start;
+        _selectedToDate = picked.end;
+      });
+    }
   }
 
   Widget cardbalances(name, Function getbalance) {
@@ -817,7 +849,7 @@ class _ExpenseTrackerHomePageState extends State<ExpenseTrackerHomePage> {
             icon: Icon(Icons.date_range, color: Colors.orangeAccent),
             onPressed: () async {
               // datepicker();
-              // await _showDateRangePicker(context);
+              await _showDateRangePicker(context);
               // // await _showDatePicker(true, 'Select From Date');
               // // await _showDatePicker(false, 'Select To Date');
 

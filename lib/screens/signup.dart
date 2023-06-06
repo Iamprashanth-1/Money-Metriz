@@ -133,6 +133,7 @@ class _signUpScreenState extends State<SignUpScreen> {
   final _formKey = GlobalKey<FormState>();
   bool _isLoading = false;
   String _errorMessage = '';
+  bool _obscureText = true;
 
   void _validateSignup() async {
     if (_formKey.currentState!.validate()) {
@@ -152,7 +153,8 @@ class _signUpScreenState extends State<SignUpScreen> {
       } catch (e) {
         setState(() {
           _isLoading = false;
-          _errorMessage = e.toString();
+          // _errorMessage = e.toString();
+          _errorMessage = 'Something went wrong please try again';
         });
       }
     }
@@ -162,132 +164,149 @@ class _signUpScreenState extends State<SignUpScreen> {
   Widget build(BuildContext context) {
     return Background(
       child: SingleChildScrollView(
-        child: Row(
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.start,
           children: [
-            Expanded(
-              child: SignUpScreenTopImage(),
-            ),
-            Expanded(
-              child: Column(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  // SizedBox(
-                  //   width: 450,
-                  //   child: SignUpForm(),
-                  // ),
-                  SizedBox(height: defaultPadding / 2),
-                  // SocalSignUp()
-                  Form(
-                    key: _formKey,
-                    child: Column(
-                      children: [
-                        TextFormField(
-                          keyboardType: TextInputType.name,
-                          controller: name_contr,
-                          textInputAction: TextInputAction.next,
-                          cursorColor: kPrimaryColor,
-                          onSaved: (name) {
-                            email_contr.text = name!;
-                          },
-                          validator: (value) {
-                            if (value == null || value.isEmpty) {
-                              return 'Please enter your Name';
-                            }
-                          },
-                          decoration: InputDecoration(
-                            hintText: "Your Name",
-                            prefixIcon: Padding(
-                              padding: const EdgeInsets.all(defaultPadding),
-                              child: Icon(Icons.person),
-                            ),
-                          ),
-                        ),
-                        SizedBox(height: defaultPadding / 2),
-
-                        TextFormField(
-                          controller: email_contr,
-                          keyboardType: TextInputType.emailAddress,
-                          textInputAction: TextInputAction.next,
-                          cursorColor: kPrimaryColor,
-                          onSaved: (email) {
-                            email_contr.text = email!;
-                          },
-                          validator: (value) {
-                            if (value == null || value.isEmpty) {
-                              return 'Please enter your Email';
-                            }
-                          },
-                          decoration: InputDecoration(
-                            hintText: "Your email",
-                            prefixIcon: Padding(
-                              padding: const EdgeInsets.all(defaultPadding),
-                              child: Icon(Icons.person),
-                            ),
-                          ),
-                        ),
-                        Padding(
-                          padding: const EdgeInsets.symmetric(
-                              vertical: defaultPadding),
-                          child: TextFormField(
-                            controller: password_contr,
-                            textInputAction: TextInputAction.done,
-                            obscureText: true,
-                            validator: (value) {
-                              if (value == null || value.isEmpty) {
-                                return 'Please enter your Password';
-                              }
-                            },
-                            cursorColor: kPrimaryColor,
-                            decoration: InputDecoration(
-                              hintText: "Your password",
-                              prefixIcon: Padding(
-                                padding: const EdgeInsets.all(defaultPadding),
-                                child: Icon(Icons.lock),
-                              ),
-                            ),
-                          ),
-                        ),
-                        const SizedBox(height: defaultPadding / 2),
-                        // ElevatedButton(
-                        //   onPressed: () {},
-                        //   child: Text("Sign Up".toUpperCase()),
-                        // ),
-                        ElevatedButton(
-                          onPressed: _isLoading ? null : _validateSignup,
-                          child: _isLoading
-                              ? CircularProgressIndicator()
-                              : Text('Signup'),
-                        ),
-                        if (_errorMessage != null)
+            SizedBox(height: defaultPadding * 8),
+            SignUpScreenTopImage(),
+            Row(
+              children: [
+                Expanded(
+                    flex: 8,
+                    child:
+                        // SocalSignUp()
+                        Form(
+                      key: _formKey,
+                      child: Column(
+                        children: [
                           Padding(
-                            padding: const EdgeInsets.all(8.0),
-                            child: Text(
-                              _errorMessage,
-                              style: TextStyle(
-                                color: Colors.red,
-                                fontWeight: FontWeight.bold,
+                              padding: const EdgeInsets.symmetric(
+                                  horizontal: defaultPadding),
+                              child: TextFormField(
+                                keyboardType: TextInputType.name,
+                                controller: name_contr,
+                                textInputAction: TextInputAction.next,
+                                cursorColor: kPrimaryColor,
+                                onSaved: (name) {
+                                  email_contr.text = name!;
+                                },
+                                validator: (value) {
+                                  if (value == null || value.isEmpty) {
+                                    return 'Please enter your Name';
+                                  }
+                                },
+                                decoration: InputDecoration(
+                                  hintText: "Your Name",
+                                  prefixIcon: Padding(
+                                    padding:
+                                        const EdgeInsets.all(defaultPadding),
+                                    child: Icon(Icons.person),
+                                  ),
+                                ),
+                              )),
+                          SizedBox(height: defaultPadding / 2),
+                          Padding(
+                              padding: const EdgeInsets.symmetric(
+                                  horizontal: defaultPadding),
+                              child: TextFormField(
+                                controller: email_contr,
+                                keyboardType: TextInputType.emailAddress,
+                                textInputAction: TextInputAction.next,
+                                cursorColor: kPrimaryColor,
+                                onSaved: (email) {
+                                  email_contr.text = email!;
+                                },
+                                validator: (value) {
+                                  if (value == null || value.isEmpty) {
+                                    return 'Please enter your Email';
+                                  }
+                                },
+                                decoration: InputDecoration(
+                                  hintText: "Your email",
+                                  prefixIcon: Padding(
+                                    padding:
+                                        const EdgeInsets.all(defaultPadding),
+                                    child: Icon(Icons.person),
+                                  ),
+                                ),
+                              )),
+                          SizedBox(height: defaultPadding),
+
+                          Padding(
+                            padding: const EdgeInsets.symmetric(
+                                horizontal: defaultPadding),
+                            child: TextFormField(
+                              controller: password_contr,
+                              textInputAction: TextInputAction.done,
+                              obscureText: _obscureText,
+                              validator: (value) {
+                                if (value == null || value.isEmpty) {
+                                  return 'Please enter your Password';
+                                }
+                              },
+                              cursorColor: kPrimaryColor,
+                              decoration: InputDecoration(
+                                suffixIcon: IconButton(
+                                  icon: Icon(
+                                    _obscureText
+                                        ? Icons.visibility
+                                        : Icons.visibility_off,
+                                  ),
+                                  onPressed: () {
+                                    setState(() {
+                                      _obscureText = !_obscureText;
+                                    });
+                                  },
+                                ),
+                                hintText: "Your password",
+                                prefixIcon: Padding(
+                                  padding: const EdgeInsets.all(defaultPadding),
+                                  child: Icon(Icons.lock),
+                                ),
                               ),
                             ),
                           ),
-                        const SizedBox(height: defaultPadding),
-                        AlreadyHaveAnAccountCheck(
-                          login: false,
-                          press: () {
-                            Navigator.push(
-                              context,
-                              MaterialPageRoute(
-                                builder: (context) {
-                                  return LoginScreen();
-                                },
+                          const SizedBox(height: defaultPadding),
+                          // ElevatedButton(
+                          //   onPressed: () {},
+                          //   child: Text("Sign Up".toUpperCase()),
+                          // ),
+                          ElevatedButton(
+                            onPressed: _isLoading ? null : _validateSignup,
+                            child: _isLoading
+                                ? CircularProgressIndicator()
+                                : Text('Signup'),
+                          ),
+                          if (_errorMessage != null)
+                            Padding(
+                              padding: const EdgeInsets.all(8.0),
+                              child: Text(
+                                _errorMessage,
+                                style: TextStyle(
+                                  color: Colors.red,
+                                  fontWeight: FontWeight.bold,
+                                ),
                               ),
-                            );
-                          },
-                        ),
-                      ],
-                    ),
-                  )
-                ],
-              ),
+                            ),
+                          const SizedBox(height: defaultPadding),
+                          AlreadyHaveAnAccountCheck(
+                            login: false,
+                            press: () {
+                              Navigator.push(
+                                context,
+                                MaterialPageRoute(
+                                  builder: (context) {
+                                    return LoginScreen();
+                                  },
+                                ),
+                              );
+                            },
+                          ),
+                          SizedBox(height: defaultPadding * 2),
+                        ],
+                      ),
+                    ))
+              ],
             )
           ],
         ),

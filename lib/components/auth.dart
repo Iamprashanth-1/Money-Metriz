@@ -9,6 +9,7 @@ import 'dart:convert';
 
 class AuthService {
   final Account _account = Account(Appwrite.instance.client);
+  final _storage = Storage(Appwrite.instance.client);
   // final _user = Users.Users(Appwrite.instance.client as Users.Client);
 
   final String databaseId = '6464d86842d0a340597d';
@@ -38,6 +39,27 @@ class AuthService {
     } finally {}
 
     return _account.get();
+  }
+
+  Future uploadUserImage(bytes, fileName) async {
+    final file = await _storage.createFile(
+      bucketId: userProfileBucketId,
+      fileId: ID.unique(),
+      file: InputFile.fromBytes(bytes: bytes, filename: fileName),
+    );
+    try {
+      return file.toMap()['\$id'];
+    } catch (e) {
+      return '';
+    }
+    print(file.toMap());
+  }
+
+  Future getProfileView(fileId) async {
+    final file = await _storage.getFileView(
+        fileId: fileId, bucketId: userProfileBucketId);
+    // print(file);
+    return file;
   }
 
   Future<void> logout() {
@@ -106,6 +128,37 @@ class AuthService {
       documentId: documentId,
       data: data,
     );
+  }
+
+  Future getStorageDocument(_StorageCollectionId) async {
+    var userId = await getuser();
+    var result = await Databases(Appwrite.instance.client).listDocuments(
+      databaseId: databaseId,
+      collectionId: _StorageCollectionId,
+      queries: [
+        Query.equal("userId", [userId]),
+      ],
+    );
+    List<Map<String, dynamic>> documents = [];
+    result.documents.forEach((element) {
+      documents.add(element.data);
+    });
+    documents.sort((a, b) => b["\$createdAt"].compareTo(a["\$createdAt"]));
+
+    if (documents.length > 0) {
+      return documents[0]['feildId'];
+    } else {
+      return '';
+    }
+  }
+
+  Future getAuthStatus() async {
+    final authNotifier = await _account.getSession(sessionId: 'current');
+    try {
+      return authNotifier.current;
+    } catch (e) {
+      return 'False';
+    }
   }
 
   Future getDocuments(collectionId, year, month) async {
