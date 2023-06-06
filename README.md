@@ -40,9 +40,17 @@ Follow these steps to clone and set up the project:
 
 5. Set up the appWrite SDK:
 
-   - Sign up for an account on the appWrite website (https://appWrite.io) if you haven't already.
-   - Create a new project and obtain the SDK key.
-   - Open the file `lib/appWrite/appWrite_service.dart` and replace the placeholder value for `sdkKey` with your obtained SDK key.
+   - Sign up for an account on the appWrite website (https://cloud.appwrite.io/) if you haven't already.
+   - Create a new project and obtain the Project key.
+   - Create .env File And add below keys with your Appwrite Ids:
+    - appwriteProjectId = ''
+    - appwriteDatabaseId = ''
+    - storageFeildId = ''
+    - appwriteApiKey =''
+    - userProfileBucketId = ''
+    - tranactionCollectionId = ''
+    - monthlyBudgetCollectionId = ''
+
 
 6. Run the app on a simulator or connected device:
 
