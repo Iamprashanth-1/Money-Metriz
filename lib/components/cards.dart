@@ -348,7 +348,6 @@ class _MonthlyBudgetState extends State<MonthlyBudgetCard> {
                 child: IconButton(
                   icon: Icon(
                     Icons.edit,
-                    color: Colors.white,
                   ),
                   onPressed: () {
                     showbudgeteditpopup();
