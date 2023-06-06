@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 import 'package:appwrite/appwrite.dart';
-import 'login.dart';
 import 'constants.dart';
 import 'screens/login.dart';
 import 'screens/logsign.dart';
