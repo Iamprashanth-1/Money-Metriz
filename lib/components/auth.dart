@@ -43,7 +43,7 @@ class AuthService {
 
   Future uploadUserImage(bytes, fileName) async {
     final file = await _storage.createFile(
-      bucketId: userProfileBucketId,
+      bucketId: userProfileBucketId!,
       fileId: ID.unique(),
       file: InputFile.fromBytes(bytes: bytes, filename: fileName),
     );
@@ -57,7 +57,7 @@ class AuthService {
 
   Future getProfileView(fileId) async {
     final file = await _storage.getFileView(
-        fileId: fileId, bucketId: userProfileBucketId);
+        fileId: fileId, bucketId: userProfileBucketId!);
     // print(file);
     return file;
   }
@@ -102,7 +102,7 @@ class AuthService {
     var userId = await getuser();
     final result = await Databases(Appwrite.instance.client).listDocuments(
         databaseId: databaseId,
-        collectionId: monthlyBudgetCollectionId,
+        collectionId: monthlyBudgetCollectionId!,
         queries: [
           Query.equal("userId", [userId]),
           Query.equal("monthYear", [monthyear])
@@ -202,9 +202,9 @@ class AuthService {
     final response =
         await http.get(Uri.parse('$appwriteEndpoint/users/$userid'), headers: {
       'content-type': 'application/json',
-      'X-Appwrite-Project': appwriteProjectId,
+      'X-Appwrite-Project': appwriteProjectId!,
       'X-Appwrite-Response-Format': '1.0.0',
-      'X-Appwrite-Key': appwriteApiKey,
+      'X-Appwrite-Key': appwriteApiKey!,
     }); //, 'origin': 'http://localhost:8080''));
     Map<String, dynamic> userMap = json.decode(response.body);
 
@@ -217,9 +217,9 @@ class AuthService {
     final response = await http
         .patch(Uri.parse('$appwriteEndpoint/users/$userid/password'), headers: {
       'Content-type': 'application/x-www-form-urlencoded',
-      'X-Appwrite-Project': appwriteProjectId,
+      'X-Appwrite-Project': appwriteProjectId!,
       'X-Appwrite-Response-Format': '1.0.0',
-      'X-Appwrite-Key': appwriteApiKey,
+      'X-Appwrite-Key': appwriteApiKey!,
     }, body: {
       "password": password
     }); //, 'origin': 'http://localhost:8080''));
@@ -234,9 +234,9 @@ class AuthService {
     final response = await http
         .patch(Uri.parse('$appwriteEndpoint/users/$userid/email'), headers: {
       'Content-type': 'application/x-www-form-urlencoded',
-      'X-Appwrite-Project': appwriteProjectId,
+      'X-Appwrite-Project': appwriteProjectId!,
       'X-Appwrite-Response-Format': '1.0.0',
-      'X-Appwrite-Key': appwriteApiKey,
+      'X-Appwrite-Key': appwriteApiKey!,
     }, body: {
       "email": email
     }); //, 'origin': 'http://localhost:8080''));
@@ -251,9 +251,9 @@ class AuthService {
     final response = await http
         .patch(Uri.parse('$appwriteEndpoint/users/$userid/name'), headers: {
       'Content-type': 'application/x-www-form-urlencoded',
-      'X-Appwrite-Project': appwriteProjectId,
+      'X-Appwrite-Project': appwriteProjectId!,
       'X-Appwrite-Response-Format': '1.0.0',
-      'X-Appwrite-Key': appwriteApiKey,
+      'X-Appwrite-Key': appwriteApiKey!,
     }, body: {
       "name": name
     }); //, 'origin': 'http://localhost:8080''));

@@ -8,9 +8,11 @@ import 'screens/home.dart';
 import 'components/auth.dart';
 import '/components/app_theme.dart';
 import 'screens/splash.dart';
+import 'package:flutter_dotenv/flutter_dotenv.dart';
 
-void main() {
-  runApp(const MyApps());
+void main() async {
+  await dotenv.load();
+  runApp(MyApps());
 
 // Your project ID
 }
