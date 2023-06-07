@@ -184,10 +184,9 @@ class AuthService {
       List<Map<String, dynamic>> documents = [];
       result.documents.forEach((element) {
         var tempdate = DateTime.parse(element.data['createdAt']);
-
         if (year != null && month != null) {
-          if (tempdate.year.toString() == year &&
-              tempdate.month.toString() == month) {
+          if (tempdate.year.toString() == year.toString() &&
+              tempdate.month.toString() == month.toString()) {
             documents.add(element.data);
           }
         }

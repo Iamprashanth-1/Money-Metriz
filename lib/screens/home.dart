@@ -158,8 +158,8 @@ class _ExpenseTrackerHomePageState extends State<ExpenseTrackerHomePage> {
               child: Text('Ok'),
               onPressed: () async {
                 var checkadded = await AuthService().checkmonthlybudgetadded(
-                    DateTime.now().month.toString() +
-                        DateTime.now().year.toString());
+                    currentSelectedMonth +
+                        currentSelectedYear); //check if budget already added
                 if (checkadded) {
                   StatusMessagePopup(
                           message: 'Budget Already Added',
@@ -168,11 +168,13 @@ class _ExpenseTrackerHomePageState extends State<ExpenseTrackerHomePage> {
                   Navigator.of(context).pop();
                   return;
                 } else {
+                  // print(currentSelectedMonth);
                   await AuthService().insertDocument(data: {
-                    'monthYear': DateTime.now().month.toString() +
-                        DateTime.now().year.toString(),
+                    'monthYear': currentSelectedMonth + currentSelectedYear,
                     'budgetAmount': _controllerBudgetAdded.text,
-                    'createdAt': DateTime.now().toString(),
+                    'createdAt': DateTime(int.parse(currentSelectedYear),
+                            int.parse(currentSelectedMonth))
+                        .toString(),
                     'updatedAt': DateTime.now().toString()
                   }, collectionId: monthlyBudgetCollectionId);
 
@@ -218,8 +220,8 @@ class _ExpenseTrackerHomePageState extends State<ExpenseTrackerHomePage> {
     for (var i in _monthlyBudget) {
       // print(i['\$id']);
       DateTime dateTime = DateTime.parse(i['createdAt']);
-      if (dateTime.month == DateTime.now().month &&
-          dateTime.year == DateTime.now().year) {
+      if (dateTime.month.toString() == currentSelectedMonth &&
+          dateTime.year.toString() == currentSelectedYear) {
         // print(i['budgetAmount']);
         currentMonthBudgetValueTemp += i['budgetAmount'];
         currentMonthBudgetDocumentIdTemp = i['\$id'];
@@ -263,12 +265,16 @@ class _ExpenseTrackerHomePageState extends State<ExpenseTrackerHomePage> {
   }
 
   gettotalcreditamount() async {
-    totalcreditamount = 0.0;
+    var totalcreditamountTemp = 0.0;
     for (var i in _data) {
       if (i['transactionType'] == 'CREDIT') {
-        totalcreditamount = totalcreditamount + i['amount'];
+        totalcreditamountTemp = totalcreditamountTemp + i['amount'];
       }
     }
+    setState(() {
+      totaldebitamount = totalcreditamountTemp;
+      _isLoading = false;
+    });
 
     return totalcreditamount;
     // _data = await AuthService().getDocuments();
@@ -697,6 +703,7 @@ class _ExpenseTrackerHomePageState extends State<ExpenseTrackerHomePage> {
                     child: Text('Apply'),
                     onPressed: () {
                       checkcurrentselectmonthyear();
+                      checkbudgetaddedinauth();
                       lasttransactions(gettotaltrans);
                       // getLastTimestamp();
                       // Perform filtering logic
@@ -897,7 +904,7 @@ class _MyDialogState extends State<AddBudgetState> {
   void initState() {
     super.initState();
     _currentTransactiondateController.text =
-        DateFormat('dd/MM/yyyy HH:mm:ss').format(datetime);
+        DateFormat('MM/dd/yyyy HH:mm:ss').format(datetime);
   }
 
   @override
@@ -959,11 +966,11 @@ class _MyDialogState extends State<AddBudgetState> {
                         await showDateTimePicker(context: context);
                     if (transactionDateTime != null) {
                       _currentTransactiondateController.text =
-                          DateFormat('dd/MM/yyyy HH:mm:ss')
+                          DateFormat('MM/dd/yyyy HH:mm:ss')
                               .format(transactionDateTime);
                     } else {
                       _currentTransactiondateController.text =
-                          DateFormat('dd/MM/yyyy HH:mm:ss').format(datetime);
+                          DateFormat('MM/dd/yyyy HH:mm:ss').format(datetime);
                     }
                   }),
               TextFormField(
