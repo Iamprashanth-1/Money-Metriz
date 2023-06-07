@@ -49,7 +49,7 @@ class _ExpenseTrackerHomePageState extends State<ExpenseTrackerHomePage> {
   String currentSelectedMonth = '';
   String currentSelectedYear = '';
 
-  Map<String, dynamic> _options = {
+  Map<String, dynamic> _options_months = {
     '1': false,
     '2': false,
     '3': false,
@@ -73,9 +73,9 @@ class _ExpenseTrackerHomePageState extends State<ExpenseTrackerHomePage> {
     super.initState();
     for (int i = 1; i < 13; i++) {
       if (datenow.month == i) {
-        _options[i.toString()] = true;
+        _options_months[i.toString()] = true;
       } else {
-        _options[i.toString()] = false;
+        _options_months[i.toString()] = false;
       }
     }
     for (int i = 2023; i <= datenow.year; i++) {
@@ -121,8 +121,8 @@ class _ExpenseTrackerHomePageState extends State<ExpenseTrackerHomePage> {
         // currentSelectedYear = sk;
       }
     }
-    for (var sk in _options.keys) {
-      if (_options[sk] == true) {
+    for (var sk in _options_months.keys) {
+      if (_options_months[sk] == true) {
         setState(() {
           currentSelectedMonth = sk;
         });
@@ -136,14 +136,22 @@ class _ExpenseTrackerHomePageState extends State<ExpenseTrackerHomePage> {
       builder: (BuildContext context) {
         return AlertDialog(
           title: Text('Enter Budget For This Month'),
-          content: TextField(
+          content: TextFormField(
+            validator: (value) {
+              if (value == null || value.isEmpty) {
+                return 'Please Add Budget';
+              } else if (value.contains(RegExp(r'[a-zA-Z]'))) {
+                return 'Please Add Valid Budget';
+              }
+            },
+
             controller: _controllerBudgetAdded,
             // onChanged: (value) {
             //   setState(() {
             //     MonthlyBudget = value;
             //   });
             // },
-            decoration: InputDecoration(hintText: 'Enter text here'),
+            decoration: InputDecoration(hintText: 'Enter Budget'),
           ),
           actions: <Widget>[
             ElevatedButton(
@@ -320,7 +328,7 @@ class _ExpenseTrackerHomePageState extends State<ExpenseTrackerHomePage> {
         centerTitle: true,
         title: Text('Money Metriz'),
         actions: [
-          nmg(context),
+          monthYearfilterWidget(context),
           IconButton(
             icon: Icon(Icons.add_task),
             onPressed: () {
@@ -342,7 +350,7 @@ class _ExpenseTrackerHomePageState extends State<ExpenseTrackerHomePage> {
           showDialog(
             context: context,
             builder: (BuildContext context) {
-              return MyDialog();
+              return AddBudgetState();
             },
           );
           // TODO: Add expense
@@ -369,6 +377,8 @@ class _ExpenseTrackerHomePageState extends State<ExpenseTrackerHomePage> {
     // Simulate a delay of 2 seconds
     await Future.delayed(Duration(seconds: 2));
     lasttransactions(gettotaltrans);
+    checkbudgetaddedinauth();
+
     // lasttransactions(getmonthlybugetid);
     AuthService().getuser();
     getusernames();
@@ -594,7 +604,7 @@ class _ExpenseTrackerHomePageState extends State<ExpenseTrackerHomePage> {
     ));
   }
 
-  Widget nmg(context) {
+  Widget monthYearfilterWidget(context) {
     return IconButton(
       icon: Icon(Icons.filter_alt),
       onPressed: () async {
@@ -605,7 +615,7 @@ class _ExpenseTrackerHomePageState extends State<ExpenseTrackerHomePage> {
               return AlertDialog(
                 surfaceTintColor: bgColor,
                 shadowColor: bgColor,
-                title: Text('Please Select Month and Year',
+                title: Text('Please Select Month',
                     style: TextStyle(fontWeight: FontWeight.bold)),
                 content: Column(
                   mainAxisSize: MainAxisSize.min,
@@ -621,19 +631,21 @@ class _ExpenseTrackerHomePageState extends State<ExpenseTrackerHomePage> {
                         ),
                       ),
                       child: ListView.builder(
-                        itemCount: _options.length,
+                        itemCount: _options_months.length,
                         itemBuilder: (BuildContext context, int index) {
-                          String key = _options.keys.elementAt(index);
+                          String key = _options_months.keys.elementAt(index);
                           return CheckboxListTile(
                             title: Text("${monthMap[key]}"),
                             onChanged: (bool? value) {
                               setState(() {
-                                _options = Map.fromIterable(_options.keys,
-                                    key: (k) => k, value: (_) => false);
-                                _options[key] = value!;
+                                _options_months = Map.fromIterable(
+                                    _options_months.keys,
+                                    key: (k) => k,
+                                    value: (_) => false);
+                                _options_months[key] = value!;
                               });
                             },
-                            value: _options[key],
+                            value: _options_months[key],
                           );
                         },
                       ),
@@ -862,12 +874,12 @@ class _ExpenseTrackerHomePageState extends State<ExpenseTrackerHomePage> {
   }
 }
 
-class MyDialog extends StatefulWidget {
+class AddBudgetState extends StatefulWidget {
   @override
   _MyDialogState createState() => _MyDialogState();
 }
 
-class _MyDialogState extends State<MyDialog> {
+class _MyDialogState extends State<AddBudgetState> {
   // Define variables to store dropdown and input field values
   late String credit_debit = 'DEBIT';
   late String amount = '0';
@@ -875,11 +887,12 @@ class _MyDialogState extends State<MyDialog> {
   late var category_list = category_icon_list_map.keys.toList();
   late String description;
   late var datetime = DateTime.now();
+  final _addBudgetFormKey = GlobalKey<FormState>();
 
   @override
   Widget build(BuildContext context) {
     return AlertDialog(
-      title: Text('Add Inputs Below and Press Ok'),
+      title: Text('Add Budget Details'),
       content: Column(
         mainAxisSize: MainAxisSize.min,
         children: [
@@ -916,22 +929,39 @@ class _MyDialogState extends State<MyDialog> {
                 ),
             ],
           ),
-          TextField(
-            decoration: InputDecoration(
-              labelText: 'Amount',
-            ),
-            onChanged: (value) {
-              amount = value;
-            },
-          ),
-          TextField(
-            decoration: InputDecoration(
-              labelText: 'Description',
-            ),
-            onChanged: (String value) {
-              description = value;
-            },
-          ),
+          Form(
+            key: _addBudgetFormKey,
+            child: Column(children: [
+              TextFormField(
+                validator: (value) {
+                  if (value == null || value.isEmpty) {
+                    return 'Please Add Amount';
+                  } else if (value.contains(RegExp(r'[a-zA-Z]'))) {
+                    return 'Please Add Valid Amount';
+                  }
+                },
+                decoration: InputDecoration(
+                  labelText: 'Amount',
+                ),
+                onChanged: (value) {
+                  amount = value;
+                },
+              ),
+              TextFormField(
+                validator: (value) {
+                  if (value == null || value.isEmpty) {
+                    return 'Please Add Description';
+                  }
+                },
+                decoration: InputDecoration(
+                  labelText: 'Description',
+                ),
+                onChanged: (String value) {
+                  description = value;
+                },
+              ),
+            ]),
+          )
         ],
       ),
       actions: [
@@ -947,21 +977,23 @@ class _MyDialogState extends State<MyDialog> {
             // var sm = await AuthService()
             //     .login(email: 'abcd@gmail.com', password: '12345678');
             // print(sm);
-            await AuthService().insertDocument(data: {
-              "transactionType": credit_debit,
-              "amount": int.parse(amount),
-              "category": category.toString(),
-              "description": description.toString(),
-              "createdAt": datetime.toString(),
-              "updatedAt": datetime.toString(),
-            }, collectionId: tranactionCollectionId);
-            // Do something with the dropdown and input field values
-            createErrorSnackBar('Expense Added');
-            StatusMessagePopup(
-                    message: 'Expense Added', duration: Duration(seconds: 2))
-                .show(context);
+            if (_addBudgetFormKey.currentState!.validate()) {
+              await AuthService().insertDocument(data: {
+                "transactionType": credit_debit,
+                "amount": int.parse(amount),
+                "category": category.toString(),
+                "description": description.toString(),
+                "createdAt": datetime.toString(),
+                "updatedAt": datetime.toString(),
+              }, collectionId: tranactionCollectionId);
+              // Do something with the dropdown and input field values
+              createErrorSnackBar('Expense Added');
+              StatusMessagePopup(
+                      message: 'Expense Added', duration: Duration(seconds: 2))
+                  .show(context);
 
-            Navigator.of(context).pop();
+              Navigator.of(context).pop();
+            }
           },
         ),
       ],

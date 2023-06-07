@@ -5,6 +5,7 @@ import 'app_theme.dart';
 import 'auth.dart';
 import '../constants.dart';
 import 'dart:math';
+import '../utils.dart';
 
 Future<List<ChartData>> getmonthtrend(_data) async {
   final List<ChartData> data1 = [];
@@ -155,15 +156,6 @@ class _ChartScreenState extends State<BeautifulChart> {
   //   ChartData(5, 'May', 35, 20),
   //   ChartData(6, 'Jun', 30, 15),
   // ];
-  Color generateRandomColor() {
-    Random random = Random();
-    return Color.fromARGB(
-      255,
-      random.nextInt(256),
-      random.nextInt(256),
-      random.nextInt(256),
-    );
-  }
 
   getfulldataofuser() async {
     var dar = await AuthService().getDocuments(

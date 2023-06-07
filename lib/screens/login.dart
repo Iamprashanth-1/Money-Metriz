@@ -114,6 +114,9 @@ class _LoginState extends State<LoginScreen> {
                           padding: const EdgeInsets.symmetric(
                               horizontal: defaultPadding),
                           child: TextFormField(
+                            scrollPadding: EdgeInsets.only(
+                                bottom:
+                                    MediaQuery.of(context).viewInsets.bottom),
                             keyboardType: TextInputType.emailAddress,
                             textInputAction: TextInputAction.next,
                             controller: email_contr,

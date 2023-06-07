@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'dart:math';
 
 SnackBar createErrorSnackBar(String? content) {
   return SnackBar(
@@ -136,4 +137,14 @@ class _MonthYearPickerState extends State<MonthYearPicker> {
     DateTime selectedDate = DateTime(_selectedYear, _selectedMonth);
     widget.onDateSelected(selectedDate);
   }
+}
+
+Color generateRandomColor() {
+  Random random = Random();
+  return Color.fromARGB(
+    255,
+    random.nextInt(256),
+    random.nextInt(256),
+    random.nextInt(256),
+  );
 }
