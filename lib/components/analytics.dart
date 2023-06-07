@@ -158,8 +158,8 @@ class _ChartScreenState extends State<BeautifulChart> {
   // ];
 
   getfulldataofuser() async {
-    var dar = await AuthService().getDocuments(
-        tranactionCollectionId, widget.selectedYear, widget.selectedMonth);
+    var dar = await AuthService().getDocuments(tranactionCollectionId,
+        widget.selectedYear, widget.selectedMonth, context);
     setState(() {
       _data = dar;
     });

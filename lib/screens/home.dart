@@ -294,11 +294,10 @@ class _ExpenseTrackerHomePageState extends State<ExpenseTrackerHomePage> {
       _isLoading = true;
     });
 
-    var da = await AuthService().getDocuments(
-        tranactionCollectionId, currentSelectedYear, currentSelectedMonth);
-    var da1 = await AuthService().getDocuments(
-        monthlyBudgetCollectionId, currentSelectedYear, currentSelectedMonth);
-
+    var da = await AuthService().getDocuments(tranactionCollectionId,
+        currentSelectedYear, currentSelectedMonth, context);
+    var da1 = await AuthService().getDocuments(monthlyBudgetCollectionId,
+        currentSelectedYear, currentSelectedMonth, context);
     setState(() {
       _data = da;
       _monthlyBudget = da1;
@@ -779,8 +778,8 @@ class _ExpenseTrackerHomePageState extends State<ExpenseTrackerHomePage> {
 
   loaddata() async {
     FutureBuilder<dynamic>(
-      future: await AuthService().getDocuments(
-          tranactionCollectionId, currentSelectedYear, currentSelectedMonth),
+      future: await AuthService().getDocuments(tranactionCollectionId,
+          currentSelectedYear, currentSelectedMonth, context),
       builder: (context, snapshot) {
         if (snapshot.hasData) {
           // If the future has resolved and returned data, display it
@@ -850,6 +849,11 @@ class _ExpenseTrackerHomePageState extends State<ExpenseTrackerHomePage> {
                   style: TextStyle(
                     fontWeight: FontWeight.bold,
                   ))),
+          DataColumn(
+              label: Text('Description',
+                  style: TextStyle(
+                    fontWeight: FontWeight.bold,
+                  ))),
         ],
         source: TranstableRow(dataList: _data),
         actions: [
@@ -888,6 +892,20 @@ class _MyDialogState extends State<AddBudgetState> {
   late String description;
   late var datetime = DateTime.now();
   final _addBudgetFormKey = GlobalKey<FormState>();
+  final _currentTransactiondateController = TextEditingController();
+
+  void initState() {
+    super.initState();
+    _currentTransactiondateController.text =
+        DateFormat('dd/MM/yyyy HH:mm:ss').format(datetime);
+  }
+
+  @override
+  void dispose() {
+    // Clean up the controller when the widget is removed
+    _currentTransactiondateController.dispose();
+    super.dispose();
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -932,6 +950,22 @@ class _MyDialogState extends State<AddBudgetState> {
           Form(
             key: _addBudgetFormKey,
             child: Column(children: [
+              TextField(
+                  readOnly: true,
+                  controller: _currentTransactiondateController,
+                  decoration: const InputDecoration(hintText: 'Pick your Date'),
+                  onTap: () async {
+                    var transactionDateTime =
+                        await showDateTimePicker(context: context);
+                    if (transactionDateTime != null) {
+                      _currentTransactiondateController.text =
+                          DateFormat('dd/MM/yyyy HH:mm:ss')
+                              .format(transactionDateTime);
+                    } else {
+                      _currentTransactiondateController.text =
+                          DateFormat('dd/MM/yyyy HH:mm:ss').format(datetime);
+                    }
+                  }),
               TextFormField(
                 validator: (value) {
                   if (value == null || value.isEmpty) {
@@ -983,7 +1017,7 @@ class _MyDialogState extends State<AddBudgetState> {
                 "amount": int.parse(amount),
                 "category": category.toString(),
                 "description": description.toString(),
-                "createdAt": datetime.toString(),
+                "createdAt": _currentTransactiondateController.text.toString(),
                 "updatedAt": datetime.toString(),
               }, collectionId: tranactionCollectionId);
               // Do something with the dropdown and input field values
@@ -998,6 +1032,43 @@ class _MyDialogState extends State<AddBudgetState> {
         ),
       ],
     );
+  }
+
+  Future<DateTime?> showDateTimePicker({
+    required BuildContext context,
+    DateTime? initialDate,
+    DateTime? firstDate,
+    DateTime? lastDate,
+  }) async {
+    initialDate ??= DateTime.now();
+    firstDate ??= initialDate.subtract(const Duration(days: 365 * 100));
+    lastDate ??= DateTime.now();
+
+    final DateTime? selectedDate = await showDatePicker(
+      context: context,
+      initialDate: initialDate,
+      firstDate: firstDate,
+      lastDate: lastDate,
+    );
+
+    if (selectedDate == null) return null;
+
+    if (!context.mounted) return selectedDate;
+
+    final TimeOfDay? selectedTime = await showTimePicker(
+      context: context,
+      initialTime: TimeOfDay.fromDateTime(selectedDate),
+    );
+
+    return selectedTime == null
+        ? selectedDate
+        : DateTime(
+            selectedDate.year,
+            selectedDate.month,
+            selectedDate.day,
+            selectedTime.hour,
+            selectedTime.minute,
+          );
   }
 }
 
@@ -1046,6 +1117,7 @@ class TranstableRow extends DataTableSource {
         "$amount",
         selectionColor: amount_color,
       )),
+      DataCell(Text("${data['description'].toString()}")),
     ]);
   }
 
