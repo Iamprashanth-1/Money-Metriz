@@ -145,6 +145,7 @@ class _ChartScreenState extends State<BeautifulChart> {
   double tCC_D = 0;
   List<ChartDatamoney> ChartDatamoneiC = [];
   List<Map<String, dynamic>> _data = [];
+  List<Map<String, dynamic>> _dataOfCurrentYear = [];
   late TooltipBehavior _tooltipBehavior;
   late LabelIntersectAction _labelIntersectAction;
 
@@ -157,25 +158,92 @@ class _ChartScreenState extends State<BeautifulChart> {
   //   ChartData(6, 'Jun', 30, 15),
   // ];
 
+  getYearlydataofUser() async {
+    var dataofYear = await AuthService().getDocumentsForCurrentYear(
+        tranactionCollectionId, widget.selectedYear, context);
+
+    setState(() {
+      _dataOfCurrentYear = dataofYear;
+    });
+
+    final List<ChartData> credit_debit_tc = [];
+    final List<ChartDatatC> totalTranscations = [];
+
+    Map<String, dynamic> tempmap_credit_debit_tc = {};
+    var totaltransactionsdailycount = {};
+    int count = 1;
+
+    for (Map<String, dynamic> mapdata in _dataOfCurrentYear) {
+      var tempcd = {'CREDIT': 0, 'DEBIT': 0, 'tC': 0};
+      var datestrip = DateTime.parse(mapdata['createdAt'].toString());
+      var currentdate = datestrip.toString().split(' ')[0];
+
+      if (totaltransactionsdailycount.containsKey(currentdate)) {
+        totaltransactionsdailycount[currentdate] =
+            totaltransactionsdailycount[currentdate] + 1;
+      } else {
+        totaltransactionsdailycount[currentdate] = 1;
+      }
+
+      String monthStringInCreated = monthMap[datestrip.month.toString()];
+
+      if (!tempmap_credit_debit_tc.containsKey(monthStringInCreated)) {
+        tempmap_credit_debit_tc[monthStringInCreated] = tempcd;
+      }
+
+      if (mapdata['transactionType'] == 'CREDIT') {
+        tempmap_credit_debit_tc[monthStringInCreated]['CREDIT'] =
+            tempmap_credit_debit_tc[monthStringInCreated]['CREDIT'] +
+                mapdata['amount'];
+      } else {
+        tempmap_credit_debit_tc[monthStringInCreated]['DEBIT'] =
+            tempmap_credit_debit_tc[monthStringInCreated]['DEBIT'] +
+                mapdata['amount'];
+      }
+      tempmap_credit_debit_tc[monthStringInCreated]['tC'] =
+          tempmap_credit_debit_tc[monthStringInCreated]['tC'] + 1;
+    }
+
+    for (var mk in tempmap_credit_debit_tc.keys) {
+      credit_debit_tc.add(ChartData(
+          count,
+          mk.toString(),
+          double.parse(tempmap_credit_debit_tc[mk]['CREDIT'].toString()),
+          double.parse(tempmap_credit_debit_tc[mk]['DEBIT'].toString()),
+          tempmap_credit_debit_tc[mk]['tC']));
+    }
+
+    for (var mia in totaltransactionsdailycount.keys) {
+      totalTranscations.add(ChartDatatC(
+          1, DateTime.parse(mia), totaltransactionsdailycount[mia]));
+    }
+
+    setState(() {
+      chartDatatC = totalTranscations;
+
+      chartData = credit_debit_tc;
+    });
+  }
+
   getfulldataofuser() async {
     var dar = await AuthService().getDocuments(tranactionCollectionId,
         widget.selectedYear, widget.selectedMonth, context);
+
     setState(() {
       _data = dar;
     });
-    final List<ChartData> data1 = [];
-    final List<ChartDatatC> data2 = [];
+
     final List<ChartCategoryDataByMonth> chardataCategories = [];
     final List<ChartDatamoney> data_credit = [];
     final List<ChartDatamoney> data_debit = [];
-    var tempcd = {'CREDIT': 0, 'DEBIT': 0, 'tC': 0};
-    var tempmap = {};
+
     var totaltransactionsdailycount = {};
     var tempdata_debit_range = {'1-100': 0, '100-1000': 0, '>1000': 0};
     var tempdata_credit_range = {'1-100': 0, '100-1000': 0, '>1000': 0};
     var tempdata_category = {};
 
     int count = 1;
+
     for (Map<String, dynamic> map in _data) {
       // print(map);
       // print(map['category']);
@@ -193,13 +261,6 @@ class _ChartScreenState extends State<BeautifulChart> {
         } else {
           tempdata_category[map['category']] = 0;
         }
-      }
-
-      if (totaltransactionsdailycount.containsKey(currentdate)) {
-        totaltransactionsdailycount[currentdate] =
-            totaltransactionsdailycount[currentdate] + 1;
-      } else {
-        totaltransactionsdailycount[currentdate] = 1;
       }
 
       if (map['transactionType'] == 'CREDIT') {
@@ -222,27 +283,6 @@ class _ChartScreenState extends State<BeautifulChart> {
         }
       }
       // print(datestrip.month);
-      String monthString = monthMap[datestrip.month.toString()];
-
-      if (tempmap.containsKey(monthString)) {
-        if (map['transactionType'] == 'CREDIT') {
-          tempmap[monthString]['CREDIT'] =
-              tempmap[monthString]['CREDIT'] + map['amount'];
-        } else {
-          tempmap[monthString]['DEBIT'] =
-              tempmap[monthString]['DEBIT'] + map['amount'];
-        }
-        tempmap[monthString]['tC'] = tempmap[monthString]['tC'] + 1;
-      } else {
-        tempmap[monthString] = tempcd;
-        if (map['transactionType'] == 'CREDIT') {
-          tempmap[monthString]['CREDIT'] =
-              tempmap[monthString]['CREDIT'] + map['amount'];
-        } else {
-          tempmap[monthString]['DEBIT'] =
-              tempmap[monthString]['DEBIT'] + map['amount'];
-        }
-      }
 
       // Parse the month and year from the monthString
       // int month = int.parse(monthString.split('-')[0]);
@@ -256,18 +296,6 @@ class _ChartScreenState extends State<BeautifulChart> {
           tempcat, tempdata_category[tempcat]!, generateRandomColor()));
     }
     // print(tempmap);
-    for (var mk in tempmap.keys) {
-      data1.add(ChartData(
-          count,
-          mk.toString(),
-          double.parse(tempmap[mk]['CREDIT'].toString()),
-          double.parse(tempmap[mk]['DEBIT'].toString()),
-          tempmap[mk]['tC']));
-    }
-    for (var mia in totaltransactionsdailycount.keys) {
-      data2.add(ChartDatatC(
-          1, DateTime.parse(mia), totaltransactionsdailycount[mia]));
-    }
 
     data_debit.add(ChartDatamoney('LOW', tempdata_debit_range['1-100']!,
         '1-100', Color.fromRGBO(235, 97, 143, 1)));
@@ -303,8 +331,6 @@ class _ChartScreenState extends State<BeautifulChart> {
         tempdata_credit_range['>1000']!;
 
     setState(() {
-      chartData = data1;
-      chartDatatC = data2;
       chartCategoryData = chardataCategories;
       ChartDatamoneiC = data_credit;
       ChartDatamoneiD = data_debit;
@@ -319,7 +345,9 @@ class _ChartScreenState extends State<BeautifulChart> {
 
     _tooltipBehavior = TooltipBehavior(enable: true);
     // loaddatas(getfulldataofuser);
+    getYearlydataofUser();
     getfulldataofuser();
+
     _labelIntersectAction = LabelIntersectAction.shift;
 
     // getmonthtrend(_data).then((data) {
@@ -674,6 +702,7 @@ class _ChartScreenState extends State<BeautifulChart> {
               useSeriesColor: true,
               trackOpacity: 0.3,
               dataLabelSettings: DataLabelSettings(
+
                   // Renders the data label
                   isVisible: true),
               enableTooltip: true,

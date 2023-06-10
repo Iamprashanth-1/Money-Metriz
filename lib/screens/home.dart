@@ -39,6 +39,7 @@ class _ExpenseTrackerHomePageState extends State<ExpenseTrackerHomePage> {
   double totalcreditamount = 0.0;
   double totaldebitamount = 0.0;
   double currentMonthBudgetValue = 0.1;
+  int _todayTransactions = 0;
   String _username = '';
   String currentMonthBudgetDocumentId = '';
   bool _isLoading = false;
@@ -264,6 +265,23 @@ class _ExpenseTrackerHomePageState extends State<ExpenseTrackerHomePage> {
     // _data = await AuthService().getDocuments();
   }
 
+  gettodaysTransactions() async {
+    var today = DateTime.now();
+    var todayTransactions = 0;
+    for (var i in _data) {
+      DateTime dateTime = DateTime.parse(i['createdAt']);
+      if (dateTime.day == today.day &&
+          dateTime.month == today.month &&
+          dateTime.year == today.year) {
+        todayTransactions += 1;
+      }
+    }
+    setState(() {
+      _todayTransactions = todayTransactions;
+    });
+    return todayTransactions;
+  }
+
   gettotalcreditamount() async {
     var totalcreditamountTemp = 0.0;
     for (var i in _data) {
@@ -331,7 +349,10 @@ class _ExpenseTrackerHomePageState extends State<ExpenseTrackerHomePage> {
       drawer: appdrawer(),
       appBar: AppBar(
         centerTitle: true,
-        title: Text('Money Metriz'),
+        title: Text(
+          'Money Metriz',
+          style: TextStyle(fontWeight: FontWeight.bold),
+        ),
         actions: [
           monthYearfilterWidget(context),
           IconButton(
@@ -433,12 +454,6 @@ class _ExpenseTrackerHomePageState extends State<ExpenseTrackerHomePage> {
                               physics: NeverScrollableScrollPhysics(),
                               children: [
                                 InfoCard(
-                                  title: 'Month Budget',
-                                  svgSrc: Colors.red,
-                                  amountOf:
-                                      cardbalances('₹ ', getmonthlybudget),
-                                ),
-                                InfoCard(
                                   title: 'Total Expense',
                                   svgSrc: Colors.red,
                                   amountOf:
@@ -459,6 +474,13 @@ class _ExpenseTrackerHomePageState extends State<ExpenseTrackerHomePage> {
                                   title: 'Total Balance Left',
                                   svgSrc: Colors.yellow,
                                   amountOf: cardbalances('₹ ', getbalanceleft),
+                                ),
+                                InfoCard(
+                                  title: "Today's Transactions",
+                                  svgSrc:
+                                      const Color.fromARGB(255, 54, 244, 235),
+                                  amountOf:
+                                      cardbalances(' ', gettodaysTransactions),
                                 ),
                                 InfoCard(
                                   title: 'Total Transactions',
