@@ -320,6 +320,7 @@ class _ExpenseTrackerHomePageState extends State<ExpenseTrackerHomePage> {
 
   void _onItemTapped(int index) {
     checkbudgetaddedinauth();
+    lasttransactions(gettotaltrans);
     setState(() {
       _selectedIndex = index;
     });
