@@ -39,6 +39,7 @@ class _ExpenseTrackerHomePageState extends State<ExpenseTrackerHomePage> {
   double totalcreditamount = 0.0;
   double totaldebitamount = 0.0;
   double currentMonthBudgetValue = 0.1;
+  int _todayTransactions = 0;
   String _username = '';
   String currentMonthBudgetDocumentId = '';
   bool _isLoading = false;
@@ -49,7 +50,7 @@ class _ExpenseTrackerHomePageState extends State<ExpenseTrackerHomePage> {
   String currentSelectedMonth = '';
   String currentSelectedYear = '';
 
-  Map<String, dynamic> _options = {
+  Map<String, dynamic> _options_months = {
     '1': false,
     '2': false,
     '3': false,
@@ -73,9 +74,9 @@ class _ExpenseTrackerHomePageState extends State<ExpenseTrackerHomePage> {
     super.initState();
     for (int i = 1; i < 13; i++) {
       if (datenow.month == i) {
-        _options[i.toString()] = true;
+        _options_months[i.toString()] = true;
       } else {
-        _options[i.toString()] = false;
+        _options_months[i.toString()] = false;
       }
     }
     for (int i = 2023; i <= datenow.year; i++) {
@@ -121,8 +122,8 @@ class _ExpenseTrackerHomePageState extends State<ExpenseTrackerHomePage> {
         // currentSelectedYear = sk;
       }
     }
-    for (var sk in _options.keys) {
-      if (_options[sk] == true) {
+    for (var sk in _options_months.keys) {
+      if (_options_months[sk] == true) {
         setState(() {
           currentSelectedMonth = sk;
         });
@@ -136,22 +137,30 @@ class _ExpenseTrackerHomePageState extends State<ExpenseTrackerHomePage> {
       builder: (BuildContext context) {
         return AlertDialog(
           title: Text('Enter Budget For This Month'),
-          content: TextField(
+          content: TextFormField(
+            validator: (value) {
+              if (value == null || value.isEmpty) {
+                return 'Please Add Budget';
+              } else if (value.contains(RegExp(r'[a-zA-Z]'))) {
+                return 'Please Add Valid Budget';
+              }
+            },
+
             controller: _controllerBudgetAdded,
             // onChanged: (value) {
             //   setState(() {
             //     MonthlyBudget = value;
             //   });
             // },
-            decoration: InputDecoration(hintText: 'Enter text here'),
+            decoration: InputDecoration(hintText: 'Enter Budget'),
           ),
           actions: <Widget>[
             ElevatedButton(
               child: Text('Ok'),
               onPressed: () async {
                 var checkadded = await AuthService().checkmonthlybudgetadded(
-                    DateTime.now().month.toString() +
-                        DateTime.now().year.toString());
+                    currentSelectedMonth +
+                        currentSelectedYear); //check if budget already added
                 if (checkadded) {
                   StatusMessagePopup(
                           message: 'Budget Already Added',
@@ -160,11 +169,13 @@ class _ExpenseTrackerHomePageState extends State<ExpenseTrackerHomePage> {
                   Navigator.of(context).pop();
                   return;
                 } else {
+                  // print(currentSelectedMonth);
                   await AuthService().insertDocument(data: {
-                    'monthYear': DateTime.now().month.toString() +
-                        DateTime.now().year.toString(),
+                    'monthYear': currentSelectedMonth + currentSelectedYear,
                     'budgetAmount': _controllerBudgetAdded.text,
-                    'createdAt': DateTime.now().toString(),
+                    'createdAt': DateTime(int.parse(currentSelectedYear),
+                            int.parse(currentSelectedMonth))
+                        .toString(),
                     'updatedAt': DateTime.now().toString()
                   }, collectionId: monthlyBudgetCollectionId);
 
@@ -210,8 +221,8 @@ class _ExpenseTrackerHomePageState extends State<ExpenseTrackerHomePage> {
     for (var i in _monthlyBudget) {
       // print(i['\$id']);
       DateTime dateTime = DateTime.parse(i['createdAt']);
-      if (dateTime.month == DateTime.now().month &&
-          dateTime.year == DateTime.now().year) {
+      if (dateTime.month.toString() == currentSelectedMonth &&
+          dateTime.year.toString() == currentSelectedYear) {
         // print(i['budgetAmount']);
         currentMonthBudgetValueTemp += i['budgetAmount'];
         currentMonthBudgetDocumentIdTemp = i['\$id'];
@@ -254,13 +265,34 @@ class _ExpenseTrackerHomePageState extends State<ExpenseTrackerHomePage> {
     // _data = await AuthService().getDocuments();
   }
 
-  gettotalcreditamount() async {
-    totalcreditamount = 0.0;
+  gettodaysTransactions() async {
+    var today = DateTime.now();
+    var todayTransactions = 0;
     for (var i in _data) {
-      if (i['transactionType'] == 'CREDIT') {
-        totalcreditamount = totalcreditamount + i['amount'];
+      DateTime dateTime = DateTime.parse(i['createdAt']);
+      if (dateTime.day == today.day &&
+          dateTime.month == today.month &&
+          dateTime.year == today.year) {
+        todayTransactions += 1;
       }
     }
+    setState(() {
+      _todayTransactions = todayTransactions;
+    });
+    return todayTransactions;
+  }
+
+  gettotalcreditamount() async {
+    var totalcreditamountTemp = 0.0;
+    for (var i in _data) {
+      if (i['transactionType'] == 'CREDIT') {
+        totalcreditamountTemp = totalcreditamountTemp + i['amount'];
+      }
+    }
+    setState(() {
+      totaldebitamount = totalcreditamountTemp;
+      _isLoading = false;
+    });
 
     return totalcreditamount;
     // _data = await AuthService().getDocuments();
@@ -286,17 +318,17 @@ class _ExpenseTrackerHomePageState extends State<ExpenseTrackerHomePage> {
       _isLoading = true;
     });
 
-    var da = await AuthService().getDocuments(
-        tranactionCollectionId, currentSelectedYear, currentSelectedMonth);
-    var da1 = await AuthService().getDocuments(
-        monthlyBudgetCollectionId, currentSelectedYear, currentSelectedMonth);
-
+    var da = await AuthService().getDocuments(tranactionCollectionId,
+        currentSelectedYear, currentSelectedMonth, context);
+    var da1 = await AuthService().getDocuments(monthlyBudgetCollectionId,
+        currentSelectedYear, currentSelectedMonth, context);
     setState(() {
       _data = da;
       _monthlyBudget = da1;
     });
-    await getmonthlybudget();
     await gettotaldebitcount();
+    await getmonthlybudget();
+
     setState(() {
       _isLoading = false;
     });
@@ -307,6 +339,8 @@ class _ExpenseTrackerHomePageState extends State<ExpenseTrackerHomePage> {
 
   void _onItemTapped(int index) {
     checkbudgetaddedinauth();
+    gettotaldebitcount();
+    // lasttransactions(gettotaltrans);
     setState(() {
       _selectedIndex = index;
     });
@@ -318,9 +352,12 @@ class _ExpenseTrackerHomePageState extends State<ExpenseTrackerHomePage> {
       drawer: appdrawer(),
       appBar: AppBar(
         centerTitle: true,
-        title: Text('Money Metriz'),
+        title: Text(
+          'Money Metriz',
+          style: TextStyle(fontWeight: FontWeight.bold),
+        ),
         actions: [
-          nmg(context),
+          monthYearfilterWidget(context),
           IconButton(
             icon: Icon(Icons.add_task),
             onPressed: () {
@@ -342,7 +379,7 @@ class _ExpenseTrackerHomePageState extends State<ExpenseTrackerHomePage> {
           showDialog(
             context: context,
             builder: (BuildContext context) {
-              return MyDialog();
+              return AddBudgetState();
             },
           );
           // TODO: Add expense
@@ -369,6 +406,8 @@ class _ExpenseTrackerHomePageState extends State<ExpenseTrackerHomePage> {
     // Simulate a delay of 2 seconds
     await Future.delayed(Duration(seconds: 2));
     lasttransactions(gettotaltrans);
+    checkbudgetaddedinauth();
+
     // lasttransactions(getmonthlybugetid);
     AuthService().getuser();
     getusernames();
@@ -418,12 +457,6 @@ class _ExpenseTrackerHomePageState extends State<ExpenseTrackerHomePage> {
                               physics: NeverScrollableScrollPhysics(),
                               children: [
                                 InfoCard(
-                                  title: 'Month Budget',
-                                  svgSrc: Colors.red,
-                                  amountOf:
-                                      cardbalances('₹ ', getmonthlybudget),
-                                ),
-                                InfoCard(
                                   title: 'Total Expense',
                                   svgSrc: Colors.red,
                                   amountOf:
@@ -444,6 +477,13 @@ class _ExpenseTrackerHomePageState extends State<ExpenseTrackerHomePage> {
                                   title: 'Total Balance Left',
                                   svgSrc: Colors.yellow,
                                   amountOf: cardbalances('₹ ', getbalanceleft),
+                                ),
+                                InfoCard(
+                                  title: "Today's Transactions",
+                                  svgSrc:
+                                      const Color.fromARGB(255, 54, 244, 235),
+                                  amountOf:
+                                      cardbalances(' ', gettodaysTransactions),
                                 ),
                                 InfoCard(
                                   title: 'Total Transactions',
@@ -594,7 +634,7 @@ class _ExpenseTrackerHomePageState extends State<ExpenseTrackerHomePage> {
     ));
   }
 
-  Widget nmg(context) {
+  Widget monthYearfilterWidget(context) {
     return IconButton(
       icon: Icon(Icons.filter_alt),
       onPressed: () async {
@@ -605,7 +645,7 @@ class _ExpenseTrackerHomePageState extends State<ExpenseTrackerHomePage> {
               return AlertDialog(
                 surfaceTintColor: bgColor,
                 shadowColor: bgColor,
-                title: Text('Please Select Month and Year',
+                title: Text('Please Select Month',
                     style: TextStyle(fontWeight: FontWeight.bold)),
                 content: Column(
                   mainAxisSize: MainAxisSize.min,
@@ -621,19 +661,21 @@ class _ExpenseTrackerHomePageState extends State<ExpenseTrackerHomePage> {
                         ),
                       ),
                       child: ListView.builder(
-                        itemCount: _options.length,
+                        itemCount: _options_months.length,
                         itemBuilder: (BuildContext context, int index) {
-                          String key = _options.keys.elementAt(index);
+                          String key = _options_months.keys.elementAt(index);
                           return CheckboxListTile(
                             title: Text("${monthMap[key]}"),
                             onChanged: (bool? value) {
                               setState(() {
-                                _options = Map.fromIterable(_options.keys,
-                                    key: (k) => k, value: (_) => false);
-                                _options[key] = value!;
+                                _options_months = Map.fromIterable(
+                                    _options_months.keys,
+                                    key: (k) => k,
+                                    value: (_) => false);
+                                _options_months[key] = value!;
                               });
                             },
-                            value: _options[key],
+                            value: _options_months[key],
                           );
                         },
                       ),
@@ -686,6 +728,7 @@ class _ExpenseTrackerHomePageState extends State<ExpenseTrackerHomePage> {
                     child: Text('Apply'),
                     onPressed: () {
                       checkcurrentselectmonthyear();
+                      checkbudgetaddedinauth();
                       lasttransactions(gettotaltrans);
                       // getLastTimestamp();
                       // Perform filtering logic
@@ -767,8 +810,8 @@ class _ExpenseTrackerHomePageState extends State<ExpenseTrackerHomePage> {
 
   loaddata() async {
     FutureBuilder<dynamic>(
-      future: await AuthService().getDocuments(
-          tranactionCollectionId, currentSelectedYear, currentSelectedMonth),
+      future: await AuthService().getDocuments(tranactionCollectionId,
+          currentSelectedYear, currentSelectedMonth, context),
       builder: (context, snapshot) {
         if (snapshot.hasData) {
           // If the future has resolved and returned data, display it
@@ -838,6 +881,11 @@ class _ExpenseTrackerHomePageState extends State<ExpenseTrackerHomePage> {
                   style: TextStyle(
                     fontWeight: FontWeight.bold,
                   ))),
+          DataColumn(
+              label: Text('Description',
+                  style: TextStyle(
+                    fontWeight: FontWeight.bold,
+                  ))),
         ],
         source: TranstableRow(dataList: _data),
         actions: [
@@ -862,12 +910,12 @@ class _ExpenseTrackerHomePageState extends State<ExpenseTrackerHomePage> {
   }
 }
 
-class MyDialog extends StatefulWidget {
+class AddBudgetState extends StatefulWidget {
   @override
   _MyDialogState createState() => _MyDialogState();
 }
 
-class _MyDialogState extends State<MyDialog> {
+class _MyDialogState extends State<AddBudgetState> {
   // Define variables to store dropdown and input field values
   late String credit_debit = 'DEBIT';
   late String amount = '0';
@@ -875,11 +923,26 @@ class _MyDialogState extends State<MyDialog> {
   late var category_list = category_icon_list_map.keys.toList();
   late String description;
   late var datetime = DateTime.now();
+  final _addBudgetFormKey = GlobalKey<FormState>();
+  final _currentTransactiondateController = TextEditingController();
+
+  void initState() {
+    super.initState();
+    _currentTransactiondateController.text =
+        DateFormat('MM/dd/yyyy HH:mm:ss').format(datetime);
+  }
+
+  @override
+  void dispose() {
+    // Clean up the controller when the widget is removed
+    _currentTransactiondateController.dispose();
+    super.dispose();
+  }
 
   @override
   Widget build(BuildContext context) {
     return AlertDialog(
-      title: Text('Add Inputs Below and Press Ok'),
+      title: Text('Add Budget Details'),
       content: Column(
         mainAxisSize: MainAxisSize.min,
         children: [
@@ -916,22 +979,55 @@ class _MyDialogState extends State<MyDialog> {
                 ),
             ],
           ),
-          TextField(
-            decoration: InputDecoration(
-              labelText: 'Amount',
-            ),
-            onChanged: (value) {
-              amount = value;
-            },
-          ),
-          TextField(
-            decoration: InputDecoration(
-              labelText: 'Description',
-            ),
-            onChanged: (String value) {
-              description = value;
-            },
-          ),
+          Form(
+            key: _addBudgetFormKey,
+            child: Column(children: [
+              TextField(
+                  readOnly: true,
+                  controller: _currentTransactiondateController,
+                  decoration: const InputDecoration(hintText: 'Pick your Date'),
+                  onTap: () async {
+                    var transactionDateTime =
+                        await showDateTimePicker(context: context);
+                    if (transactionDateTime != null) {
+                      _currentTransactiondateController.text =
+                          DateFormat('MM/dd/yyyy HH:mm:ss')
+                              .format(transactionDateTime);
+                    } else {
+                      _currentTransactiondateController.text =
+                          DateFormat('MM/dd/yyyy HH:mm:ss').format(datetime);
+                    }
+                  }),
+              TextFormField(
+                validator: (value) {
+                  if (value == null || value.isEmpty) {
+                    return 'Please Add Amount';
+                  } else if (value.contains(RegExp(r'[a-zA-Z]'))) {
+                    return 'Please Add Valid Amount';
+                  }
+                },
+                decoration: InputDecoration(
+                  labelText: 'Amount',
+                ),
+                onChanged: (value) {
+                  amount = value;
+                },
+              ),
+              TextFormField(
+                validator: (value) {
+                  if (value == null || value.isEmpty) {
+                    return 'Please Add Description';
+                  }
+                },
+                decoration: InputDecoration(
+                  labelText: 'Description',
+                ),
+                onChanged: (String value) {
+                  description = value;
+                },
+              ),
+            ]),
+          )
         ],
       ),
       actions: [
@@ -947,25 +1043,64 @@ class _MyDialogState extends State<MyDialog> {
             // var sm = await AuthService()
             //     .login(email: 'abcd@gmail.com', password: '12345678');
             // print(sm);
-            await AuthService().insertDocument(data: {
-              "transactionType": credit_debit,
-              "amount": int.parse(amount),
-              "category": category.toString(),
-              "description": description.toString(),
-              "createdAt": datetime.toString(),
-              "updatedAt": datetime.toString(),
-            }, collectionId: tranactionCollectionId);
-            // Do something with the dropdown and input field values
-            createErrorSnackBar('Expense Added');
-            StatusMessagePopup(
-                    message: 'Expense Added', duration: Duration(seconds: 2))
-                .show(context);
+            if (_addBudgetFormKey.currentState!.validate()) {
+              await AuthService().insertDocument(data: {
+                "transactionType": credit_debit,
+                "amount": int.parse(amount),
+                "category": category.toString(),
+                "description": description.toString(),
+                "createdAt": _currentTransactiondateController.text.toString(),
+                "updatedAt": datetime.toString(),
+              }, collectionId: tranactionCollectionId);
+              // Do something with the dropdown and input field values
+              createErrorSnackBar('Expense Added');
+              StatusMessagePopup(
+                      message: 'Expense Added', duration: Duration(seconds: 2))
+                  .show(context);
 
-            Navigator.of(context).pop();
+              Navigator.of(context).pop();
+            }
           },
         ),
       ],
     );
+  }
+
+  Future<DateTime?> showDateTimePicker({
+    required BuildContext context,
+    DateTime? initialDate,
+    DateTime? firstDate,
+    DateTime? lastDate,
+  }) async {
+    initialDate ??= DateTime.now();
+    firstDate ??= initialDate.subtract(const Duration(days: 365 * 100));
+    lastDate ??= DateTime.now();
+
+    final DateTime? selectedDate = await showDatePicker(
+      context: context,
+      initialDate: initialDate,
+      firstDate: firstDate,
+      lastDate: lastDate,
+    );
+
+    if (selectedDate == null) return null;
+
+    if (!context.mounted) return selectedDate;
+
+    final TimeOfDay? selectedTime = await showTimePicker(
+      context: context,
+      initialTime: TimeOfDay.fromDateTime(selectedDate),
+    );
+
+    return selectedTime == null
+        ? selectedDate
+        : DateTime(
+            selectedDate.year,
+            selectedDate.month,
+            selectedDate.day,
+            selectedTime.hour,
+            selectedTime.minute,
+          );
   }
 }
 
@@ -1014,6 +1149,7 @@ class TranstableRow extends DataTableSource {
         "$amount",
         selectionColor: amount_color,
       )),
+      DataCell(Text("${data['description'].toString()}")),
     ]);
   }
 

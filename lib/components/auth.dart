@@ -1,3 +1,4 @@
+import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 import 'package:appwrite/appwrite.dart';
@@ -6,6 +7,8 @@ import '../services/appwrite.dart';
 import 'package:http/http.dart' as http;
 import '../constants.dart';
 import 'dart:convert';
+import '../screens/login.dart';
+import '../utils.dart';
 
 class AuthService {
   final Account _account = Account(Appwrite.instance.client);
@@ -14,6 +17,8 @@ class AuthService {
 
   final String databaseId = '6464d86842d0a340597d';
   // final String collectionId = '64759c4e737497dbb488';
+  final String _unAuthMessage =
+      "AppwriteException: user_unauthorized, The current user is not authorized to perform the requested action. (401)";
 
   Future<models.Account> signUp(
       {String? name, required String email, required String password}) async {
@@ -62,7 +67,8 @@ class AuthService {
     return file;
   }
 
-  Future<void> logout() {
+  Future<void> logout() async {
+    await removeuserSession();
     return _account.deleteSession(sessionId: 'current');
   }
 
@@ -130,25 +136,30 @@ class AuthService {
     );
   }
 
-  Future getStorageDocument(_StorageCollectionId) async {
+  Future getStorageDocument(_StorageCollectionId, context) async {
     var userId = await getuser();
-    var result = await Databases(Appwrite.instance.client).listDocuments(
-      databaseId: databaseId,
-      collectionId: _StorageCollectionId,
-      queries: [
-        Query.equal("userId", [userId]),
-      ],
-    );
-    List<Map<String, dynamic>> documents = [];
-    result.documents.forEach((element) {
-      documents.add(element.data);
-    });
-    documents.sort((a, b) => b["\$createdAt"].compareTo(a["\$createdAt"]));
+    try {
+      var result = await Databases(Appwrite.instance.client).listDocuments(
+        databaseId: databaseId,
+        collectionId: _StorageCollectionId,
+        queries: [
+          Query.equal("userId", [userId]),
+        ],
+      );
+      List<Map<String, dynamic>> documents = [];
+      result.documents.forEach((element) {
+        documents.add(element.data);
+      });
+      documents.sort((a, b) => b["\$createdAt"].compareTo(a["\$createdAt"]));
 
-    if (documents.length > 0) {
-      return documents[0]['feildId'];
-    } else {
-      return '';
+      if (documents.length > 0) {
+        return documents[0]['feildId'];
+      } else {
+        return '';
+      }
+    } catch (e) {
+      return Navigator.push(
+          context, MaterialPageRoute(builder: (context) => LoginScreen()));
     }
   }
 
@@ -161,39 +172,93 @@ class AuthService {
     }
   }
 
-  Future getDocuments(collectionId, year, month) async {
+  Future getDocuments(collectionId, year, month, context) async {
     var userId = await getuser();
-    final result = await Databases(Appwrite.instance.client).listDocuments(
-        databaseId: databaseId,
-        collectionId: collectionId,
-        queries: [
-          Query.equal("userId", [userId]),
-          // Query.greaterThanEqual("createdAt", '2021-09-01T00:00:00Z'),
-          // Query.lessThanEqual("createdAt", '2023-09-30T00:00:00Z'),
-          // Query.orderDesc("updatedAt"),
-        ]);
-    List<Map<String, dynamic>> documents = [];
-    result.documents.forEach((element) {
-      var tempdate = DateTime.parse(element.data['createdAt']);
-
-      if (year != null && month != null) {
-        if (tempdate.year.toString() == year &&
-            tempdate.month.toString() == month) {
-          documents.add(element.data);
+    try {
+      final result = await Databases(Appwrite.instance.client).listDocuments(
+          databaseId: databaseId,
+          collectionId: collectionId,
+          queries: [
+            Query.equal("userId", [userId]),
+            // Query.greaterThanEqual("createdAt", '2021-09-01T00:00:00Z'),
+            // Query.lessThanEqual("createdAt", '2023-09-30T00:00:00Z'),
+            // Query.orderDesc("updatedAt"),
+          ]);
+      List<Map<String, dynamic>> documents = [];
+      result.documents.forEach((element) {
+        var tempdate = DateTime.parse(element.data['createdAt']);
+        if (year != null && month != null) {
+          if (tempdate.year.toString() == year.toString() &&
+              tempdate.month.toString() == month.toString()) {
+            documents.add(element.data);
+          }
         }
+        // if (tempdate.year == int.parse(year) &&
+        //     tempdate.month == int.parse(month)) {
+        //   print('juu');
+        //   documents.add(element.data);
+        // }
+        // documents.add(element.data);
+      });
+      // print(documents);
+
+      documents.sort((a, b) => b["createdAt"].compareTo(a["createdAt"]));
+
+      return documents;
+    } catch (e) {
+      if (e.toString().contains('unauthorized')) {
+        StatusMessagePopup(
+                message: 'Session Expired', duration: Duration(seconds: 2))
+            .show(context);
+        await removeuserSession();
+        return Navigator.push(
+            context, MaterialPageRoute(builder: (context) => LoginScreen()));
       }
-      // if (tempdate.year == int.parse(year) &&
-      //     tempdate.month == int.parse(month)) {
-      //   print('juu');
-      //   documents.add(element.data);
-      // }
-      // documents.add(element.data);
-    });
-    // print(documents);
+    }
+  }
 
-    documents.sort((a, b) => b["createdAt"].compareTo(a["createdAt"]));
+  Future getDocumentsForCurrentYear(collectionId, year, context) async {
+    var userId = await getuser();
+    try {
+      final result = await Databases(Appwrite.instance.client).listDocuments(
+          databaseId: databaseId,
+          collectionId: collectionId,
+          queries: [
+            Query.equal("userId", [userId]),
+            // Query.greaterThanEqual("createdAt", '2021-09-01T00:00:00Z'),
+            // Query.lessThanEqual("createdAt", '2023-09-30T00:00:00Z'),
+            // Query.orderDesc("updatedAt"),
+          ]);
+      List<Map<String, dynamic>> documents = [];
+      result.documents.forEach((element) {
+        var tempdate = DateTime.parse(element.data['createdAt']);
+        if (year != null) {
+          if (tempdate.year.toString() == year.toString()) {
+            documents.add(element.data);
+          }
+        }
+        // if (tempdate.year == int.parse(year) &&
+        //     tempdate.month == int.parse(month)) {
+        //   print('juu');
+        //   documents.add(element.data);
+        // }
+        // documents.add(element.data);
+      });
+      // print(documents);
 
-    return documents;
+      documents.sort((a, b) => a["createdAt"].compareTo(b["createdAt"]));
+
+      return documents;
+    } catch (e) {
+      if (e.toString().contains('unauthorized')) {
+        StatusMessagePopup(
+                message: 'Session Expired', duration: Duration(seconds: 2))
+            .show(context);
+        await removeuserSession();
+        return Navigator.push(
+            context, MaterialPageRoute(builder: (context) => LoginScreen()));
+      }
+    }
   }
 
   Future<Map> getuserdata() async {

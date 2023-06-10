@@ -40,7 +40,8 @@ class _UserProfilePageState extends State<UserProfilePage> {
   }
 
   Future _getProfileView() async {
-    var getFeildId = await AuthService().getStorageDocument(storageFeildId);
+    var getFeildId =
+        await AuthService().getStorageDocument(storageFeildId, context);
     var profileUrl = await AuthService().getProfileView(getFeildId);
     setState(() {
       userProfileUrl = profileUrl;
