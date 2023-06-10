@@ -326,8 +326,9 @@ class _ExpenseTrackerHomePageState extends State<ExpenseTrackerHomePage> {
       _data = da;
       _monthlyBudget = da1;
     });
-    await getmonthlybudget();
     await gettotaldebitcount();
+    await getmonthlybudget();
+
     setState(() {
       _isLoading = false;
     });
@@ -338,6 +339,8 @@ class _ExpenseTrackerHomePageState extends State<ExpenseTrackerHomePage> {
 
   void _onItemTapped(int index) {
     checkbudgetaddedinauth();
+    gettotaldebitcount();
+    // lasttransactions(gettotaltrans);
     setState(() {
       _selectedIndex = index;
     });
