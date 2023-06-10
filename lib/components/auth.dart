@@ -8,6 +8,7 @@ import 'package:http/http.dart' as http;
 import '../constants.dart';
 import 'dart:convert';
 import '../screens/login.dart';
+import '../utils.dart';
 
 class AuthService {
   final Account _account = Account(Appwrite.instance.client);
@@ -16,6 +17,8 @@ class AuthService {
 
   final String databaseId = '6464d86842d0a340597d';
   // final String collectionId = '64759c4e737497dbb488';
+  final String _unAuthMessage =
+      "AppwriteException: user_unauthorized, The current user is not authorized to perform the requested action. (401)";
 
   Future<models.Account> signUp(
       {String? name, required String email, required String password}) async {
@@ -203,9 +206,58 @@ class AuthService {
 
       return documents;
     } catch (e) {
-      await removeuserSession();
-      return Navigator.push(
-          context, MaterialPageRoute(builder: (context) => LoginScreen()));
+      if (e.toString().contains('unauthorized')) {
+        StatusMessagePopup(
+                message: 'Session Expired', duration: Duration(seconds: 2))
+            .show(context);
+        await removeuserSession();
+        return Navigator.push(
+            context, MaterialPageRoute(builder: (context) => LoginScreen()));
+      }
+    }
+  }
+
+  Future getDocumentsForCurrentYear(collectionId, year, context) async {
+    var userId = await getuser();
+    try {
+      final result = await Databases(Appwrite.instance.client).listDocuments(
+          databaseId: databaseId,
+          collectionId: collectionId,
+          queries: [
+            Query.equal("userId", [userId]),
+            // Query.greaterThanEqual("createdAt", '2021-09-01T00:00:00Z'),
+            // Query.lessThanEqual("createdAt", '2023-09-30T00:00:00Z'),
+            // Query.orderDesc("updatedAt"),
+          ]);
+      List<Map<String, dynamic>> documents = [];
+      result.documents.forEach((element) {
+        var tempdate = DateTime.parse(element.data['createdAt']);
+        if (year != null) {
+          if (tempdate.year.toString() == year.toString()) {
+            documents.add(element.data);
+          }
+        }
+        // if (tempdate.year == int.parse(year) &&
+        //     tempdate.month == int.parse(month)) {
+        //   print('juu');
+        //   documents.add(element.data);
+        // }
+        // documents.add(element.data);
+      });
+      // print(documents);
+
+      documents.sort((a, b) => a["createdAt"].compareTo(b["createdAt"]));
+
+      return documents;
+    } catch (e) {
+      if (e.toString().contains('unauthorized')) {
+        StatusMessagePopup(
+                message: 'Session Expired', duration: Duration(seconds: 2))
+            .show(context);
+        await removeuserSession();
+        return Navigator.push(
+            context, MaterialPageRoute(builder: (context) => LoginScreen()));
+      }
     }
   }
 

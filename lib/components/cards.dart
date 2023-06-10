@@ -158,7 +158,7 @@ class UserView extends StatelessWidget {
                 child: Text(
               'Hello, $username \u{1F44B} \n\nHow was it going today?',
               style: TextStyle(
-                color: Color.fromARGB(255, 255, 1, 213),
+                // color: Color.fromARGB(255, 255, 1, 213),
                 fontSize: MediaQuery.of(context).size.width / 25,
                 fontFamily: 'Rubik',
                 fontStyle: FontStyle.normal,
@@ -320,7 +320,7 @@ class _MonthlyBudgetState extends State<MonthlyBudgetCard> {
                 child: Text(
               'Monthly Budget \n \nAmount ${widget.monthlybudgetAmount}\u{1F4B0} \n \n  ',
               style: TextStyle(
-                color: Color.fromARGB(255, 255, 1, 213),
+                // color: Color.fromARGB(255, 255, 1, 213),
                 fontSize: MediaQuery.of(context).size.width / 25,
                 fontFamily: 'Rubik',
                 fontStyle: FontStyle.normal,
