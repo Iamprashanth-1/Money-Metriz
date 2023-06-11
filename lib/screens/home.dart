@@ -290,7 +290,7 @@ class _ExpenseTrackerHomePageState extends State<ExpenseTrackerHomePage> {
       }
     }
     setState(() {
-      totaldebitamount = totalcreditamountTemp;
+      totalcreditamount = totalcreditamountTemp;
       _isLoading = false;
     });
 
@@ -340,7 +340,6 @@ class _ExpenseTrackerHomePageState extends State<ExpenseTrackerHomePage> {
   void _onItemTapped(int index) {
     checkbudgetaddedinauth();
     gettotaldebitcount();
-    // lasttransactions(gettotaltrans);
     setState(() {
       _selectedIndex = index;
     });
@@ -602,7 +601,7 @@ class _ExpenseTrackerHomePageState extends State<ExpenseTrackerHomePage> {
               onPressed: () {
                 AuthService().logout();
                 AuthService().removeuserSession();
-                Navigator.push(context,
+                Navigator.pushReplacement(context,
                     MaterialPageRoute(builder: (context) => LoginScreen()));
               },
               child: Text('Logout')),
