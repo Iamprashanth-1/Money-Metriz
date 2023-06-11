@@ -290,7 +290,7 @@ class _ExpenseTrackerHomePageState extends State<ExpenseTrackerHomePage> {
       }
     }
     setState(() {
-      totaldebitamount = totalcreditamountTemp;
+      totalcreditamount = totalcreditamountTemp;
       _isLoading = false;
     });
 

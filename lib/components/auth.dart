@@ -158,7 +158,7 @@ class AuthService {
         return '';
       }
     } catch (e) {
-      return Navigator.push(
+      return Navigator.pushReplacement(
           context, MaterialPageRoute(builder: (context) => LoginScreen()));
     }
   }
@@ -211,7 +211,7 @@ class AuthService {
                 message: 'Session Expired', duration: Duration(seconds: 2))
             .show(context);
         await removeuserSession();
-        return Navigator.push(
+        return Navigator.pushReplacement(
             context, MaterialPageRoute(builder: (context) => LoginScreen()));
       }
     }
@@ -255,7 +255,7 @@ class AuthService {
                 message: 'Session Expired', duration: Duration(seconds: 2))
             .show(context);
         await removeuserSession();
-        return Navigator.push(
+        return Navigator.pushReplacement(
             context, MaterialPageRoute(builder: (context) => LoginScreen()));
       }
     }
