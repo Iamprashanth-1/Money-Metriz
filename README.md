@@ -5,7 +5,7 @@ This is an Money Metriz app built using Flutter and integrated with the appWrite
 ## App Flow
 ![Arch](./assets/images/app-arch.png)
 
-
+## Article : https://mpreddy.hashnode.dev/money-metriz-your-personal-finance-assistant
 ## Prerequisites
 
 Before cloning and running this project, make sure you have the following installed on your development machine:
