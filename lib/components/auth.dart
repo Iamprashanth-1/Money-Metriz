@@ -255,6 +255,8 @@ class AuthService {
                 message: 'Session Expired', duration: Duration(seconds: 2))
             .show(context);
         await removeuserSession();
+        // Navigator.popUntil(context, (route) => route.isFirst);
+        // Navigator.push(context, MaterialPageRoute(builder: (context) => LoginScreen()));
         return Navigator.pushReplacement(
             context, MaterialPageRoute(builder: (context) => LoginScreen()));
       }

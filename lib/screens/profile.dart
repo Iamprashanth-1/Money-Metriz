@@ -155,7 +155,7 @@ class _UserProfilePageState extends State<UserProfilePage> {
                   onPressed: () {
                     AuthService().logout();
                     AuthService().removeuserSession();
-                    Navigator.push(context,
+                    Navigator.pushReplacement(context,
                         MaterialPageRoute(builder: (context) => LoginScreen()));
                   },
                   child: Text('Logout')),

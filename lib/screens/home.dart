@@ -601,7 +601,7 @@ class _ExpenseTrackerHomePageState extends State<ExpenseTrackerHomePage> {
               onPressed: () {
                 AuthService().logout();
                 AuthService().removeuserSession();
-                Navigator.push(context,
+                Navigator.pushReplacement(context,
                     MaterialPageRoute(builder: (context) => LoginScreen()));
               },
               child: Text('Logout')),
