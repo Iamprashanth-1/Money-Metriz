@@ -5,7 +5,7 @@ import 'package:appwrite/appwrite.dart';
 import 'package:appwrite/models.dart' as models;
 import '../services/appwrite.dart';
 import 'package:http/http.dart' as http;
-import '../constants.dart';
+import 'constants.dart';
 import 'dart:convert';
 import '../screens/login.dart';
 import '../utils.dart';

@@ -3,7 +3,7 @@ import 'dart:ui';
 import 'package:flutter/material.dart';
 
 import 'app_theme.dart';
-import '../constants.dart';
+import 'constants.dart';
 import 'package:syncfusion_flutter_gauges/gauges.dart';
 import 'auth.dart';
 

@@ -1,16 +1,18 @@
 import 'package:flutter/material.dart';
-import 'package:money_metriz/screens/login.dart';
-import 'package:money_metriz/screens/logsign.dart';
+import 'package:money_metriz/online/screens/login.dart';
+import 'package:money_metriz/online/screens/logsign.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 import '../components/auth.dart';
 import '../utils.dart';
 import 'package:intl/intl.dart';
 import 'dart:convert';
 import 'dart:io';
-import '../constants.dart';
+import '../components/constants.dart';
 import '../components/cards.dart';
 import '../components/analytics.dart';
 import '../components/app_theme.dart';
 import 'profile.dart';
+import '/offline/offline_home.dart';
 
 class HomeScreen extends StatelessWidget {
   const HomeScreen({Key? key}) : super(key: key);
@@ -69,6 +71,11 @@ class _ExpenseTrackerHomePageState extends State<ExpenseTrackerHomePage> {
   final TextEditingController _controllerBudgetAdded = TextEditingController();
 
   DateTime datenow = DateTime.now();
+  _submitDataToSharedPrefs(String text) async {
+    SharedPreferences prefs = await SharedPreferences.getInstance();
+    await prefs.setString('user_selected_state', text);
+    // print('Text saved to shared preferences: $text');
+  }
 
   void initState() {
     super.initState();
@@ -431,7 +438,10 @@ class _ExpenseTrackerHomePageState extends State<ExpenseTrackerHomePage> {
                   fit: BoxFit.cover,
                 )),
                 child: SingleChildScrollView(
+                  padding: EdgeInsets.all(defaultPadding),
                   child: Column(
+                    mainAxisAlignment: MainAxisAlignment.spaceAround,
+                    crossAxisAlignment: CrossAxisAlignment.center,
                     children: [
                       UserView(
                         currentAccount: 'Current Account',
@@ -596,7 +606,19 @@ class _ExpenseTrackerHomePageState extends State<ExpenseTrackerHomePage> {
           //   //   borderRadius: BorderRadius.circular(16.0),
           //   // ),
           // ),
-          SizedBox(height: MediaQuery.of(context).size.height / 2),
+          SizedBox(height: MediaQuery.of(context).size.height / 3),
+          ListTile(
+            leading: Icon(Icons.logout),
+            title: Text('Swith to Offline Mode'),
+            onTap: () async {
+              await _submitDataToSharedPrefs('offline');
+              Navigator.pushReplacement(
+                  context,
+                  MaterialPageRoute(
+                      builder: (BuildContext context) => OfflineApp()));
+            },
+          ),
+          const Divider(),
           ElevatedButton(
               onPressed: () {
                 AuthService().logout();

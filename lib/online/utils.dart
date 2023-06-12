@@ -1,5 +1,12 @@
 import 'package:flutter/material.dart';
 import 'dart:math';
+import 'package:shared_preferences/shared_preferences.dart';
+
+_submitDataToSharedPrefs(String text) async {
+  SharedPreferences prefs = await SharedPreferences.getInstance();
+  await prefs.setString('user_selected_state', text);
+  // print('Text saved to shared preferences: $text');
+}
 
 SnackBar createErrorSnackBar(String? content) {
   return SnackBar(

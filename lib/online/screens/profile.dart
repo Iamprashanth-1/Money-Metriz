@@ -7,7 +7,7 @@ import 'package:package_info_plus/package_info_plus.dart';
 import 'login.dart';
 import 'package:file_picker/file_picker.dart';
 import 'dart:typed_data';
-import '../constants.dart';
+import '../components/constants.dart';
 
 class UserProfilePage extends StatefulWidget {
   @override

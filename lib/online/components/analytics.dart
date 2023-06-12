@@ -3,7 +3,7 @@ import 'package:syncfusion_flutter_charts/charts.dart';
 import 'app_theme.dart';
 
 import 'auth.dart';
-import '../constants.dart';
+import 'constants.dart';
 import 'dart:math';
 import '../utils.dart';
 
