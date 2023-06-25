@@ -1,13 +1,14 @@
 import 'package:flutter/material.dart';
 
-import '../../../components/account_check.dart';
-import '../../../constants.dart';
+import '../components/account_check.dart';
+import '../components/constants.dart';
 import 'signup.dart';
 import 'home.dart';
 import '../components/auth.dart';
-import '../responsive.dart';
+import '../components/responsive.dart';
+import '../components/app_theme.dart';
 import 'package:appwrite/appwrite.dart';
-import '../../components/background.dart';
+import '../components/background.dart';
 import '../utils.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/flutter_svg.dart';

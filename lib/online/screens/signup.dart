@@ -1,13 +1,14 @@
 import 'dart:math';
 
 import 'package:flutter/material.dart';
-import '../constants.dart';
-import '../responsive.dart';
-import '../../components/background.dart';
+import '../components/constants.dart';
+import '../components/responsive.dart';
+import '../components/background.dart';
 
-import '../../../components/account_check.dart';
+import '../components/account_check.dart';
 import 'login.dart';
 import '../components/auth.dart';
+import '../components/app_theme.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import '../utils.dart';
 

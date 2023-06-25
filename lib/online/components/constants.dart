@@ -1,11 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
-import 'utils.dart';
+import '../utils.dart';
 
 const kPrimaryColor = Color(0xFF6F35A5);
 const kPrimaryLightColor = Color(0xFFF1E6FF);
 
-const double defaultPadding = 16.0;
 const appwriteEndpoint = 'https://cloud.appwrite.io/v1';
 var appwriteProjectId = dotenv.env['appwriteProjectId'];
 const appwriteDatabaseId = 'default';

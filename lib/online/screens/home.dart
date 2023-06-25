@@ -1,16 +1,18 @@
 import 'package:flutter/material.dart';
-import 'package:money_metriz/screens/login.dart';
-import 'package:money_metriz/screens/logsign.dart';
+import 'package:money_metriz/online/screens/login.dart';
+import 'package:money_metriz/online/screens/logsign.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 import '../components/auth.dart';
 import '../utils.dart';
 import 'package:intl/intl.dart';
 import 'dart:convert';
 import 'dart:io';
-import '../constants.dart';
+import '../components/constants.dart';
 import '../components/cards.dart';
 import '../components/analytics.dart';
 import '../components/app_theme.dart';
 import 'profile.dart';
+import '/offline/offline_home.dart';
 
 class HomeScreen extends StatelessWidget {
   const HomeScreen({Key? key}) : super(key: key);
@@ -33,6 +35,7 @@ class _ExpenseTrackerHomePageState extends State<ExpenseTrackerHomePage> {
   int _sortColumnIndex = 0;
   bool _sortAscending = true;
   List<Map<String, dynamic>> _data = [];
+  List<Map<String, dynamic>> _dataBasedOnDateRange = [];
   List<Map<String, dynamic>> _monthlyBudget = [];
   String MonthlyBudget = '0';
   double totaltranscount = 0.0;
@@ -46,7 +49,7 @@ class _ExpenseTrackerHomePageState extends State<ExpenseTrackerHomePage> {
   bool _isMonlthyBudgetLoading = false;
   late DateTime _selectedFromDate;
   late DateTime _selectedToDate;
-
+  DateTime datenow = DateTime.now();
   String currentSelectedMonth = '';
   String currentSelectedYear = '';
 
@@ -68,10 +71,16 @@ class _ExpenseTrackerHomePageState extends State<ExpenseTrackerHomePage> {
   var checkBudgetAdded = false;
   final TextEditingController _controllerBudgetAdded = TextEditingController();
 
-  DateTime datenow = DateTime.now();
+  _submitDataToSharedPrefs(String text) async {
+    SharedPreferences prefs = await SharedPreferences.getInstance();
+    await prefs.setString('user_selected_state', text);
+    // print('Text saved to shared preferences: $text');
+  }
 
   void initState() {
     super.initState();
+    _selectedFromDate = datenow.subtract(Duration(days: 15));
+    _selectedToDate = datenow;
     for (int i = 1; i < 13; i++) {
       if (datenow.month == i) {
         _options_months[i.toString()] = true;
@@ -313,10 +322,20 @@ class _ExpenseTrackerHomePageState extends State<ExpenseTrackerHomePage> {
     });
   }
 
+  getrangebasedtransactions() async {
+    var dfs = await AuthService().getDocumentsBasedOnDateRange(
+        tranactionCollectionId, context, _selectedFromDate, _selectedToDate);
+    setState(() {
+      _dataBasedOnDateRange = dfs;
+    });
+  }
+
   gettotaltrans() async {
     setState(() {
       _isLoading = true;
     });
+
+    await getrangebasedtransactions();
 
     var da = await AuthService().getDocuments(tranactionCollectionId,
         currentSelectedYear, currentSelectedMonth, context);
@@ -431,7 +450,10 @@ class _ExpenseTrackerHomePageState extends State<ExpenseTrackerHomePage> {
                   fit: BoxFit.cover,
                 )),
                 child: SingleChildScrollView(
+                  padding: EdgeInsets.all(defaultPadding / 3),
                   child: Column(
+                    mainAxisAlignment: MainAxisAlignment.spaceAround,
+                    crossAxisAlignment: CrossAxisAlignment.center,
                     children: [
                       UserView(
                         currentAccount: 'Current Account',
@@ -596,7 +618,19 @@ class _ExpenseTrackerHomePageState extends State<ExpenseTrackerHomePage> {
           //   //   borderRadius: BorderRadius.circular(16.0),
           //   // ),
           // ),
-          SizedBox(height: MediaQuery.of(context).size.height / 2),
+          SizedBox(height: MediaQuery.of(context).size.height / 3),
+          ListTile(
+            leading: Icon(Icons.logout),
+            title: Text('Swith to Offline Mode'),
+            onTap: () async {
+              await _submitDataToSharedPrefs('offline');
+              Navigator.pushReplacement(
+                  context,
+                  MaterialPageRoute(
+                      builder: (BuildContext context) => OfflineApp()));
+            },
+          ),
+          const Divider(),
           ElevatedButton(
               onPressed: () {
                 AuthService().logout();
@@ -886,7 +920,7 @@ class _ExpenseTrackerHomePageState extends State<ExpenseTrackerHomePage> {
                     fontWeight: FontWeight.bold,
                   ))),
         ],
-        source: TranstableRow(dataList: _data),
+        source: TranstableRow(dataList: _dataBasedOnDateRange),
         actions: [
           // Text(
           //   'From Date : ${_selectedFromDate} \nTo Date       :${_selectedToDate}',
@@ -897,6 +931,7 @@ class _ExpenseTrackerHomePageState extends State<ExpenseTrackerHomePage> {
             onPressed: () async {
               // datepicker();
               await _showDateRangePicker(context);
+              await getrangebasedtransactions();
               // // await _showDatePicker(true, 'Select From Date');
               // // await _showDatePicker(false, 'Select To Date');
 

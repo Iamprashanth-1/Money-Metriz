@@ -1,6 +1,6 @@
 import 'package:appwrite/appwrite.dart';
 
-import '../constants.dart' as constants;
+import '../components/constants.dart' as constants;
 
 class Appwrite {
   static final Appwrite instance = Appwrite._internal();

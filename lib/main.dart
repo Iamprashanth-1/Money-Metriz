@@ -1,23 +1,56 @@
 import 'package:flutter/material.dart';
 import 'package:appwrite/appwrite.dart';
-import 'constants.dart';
-import 'screens/login.dart';
-import 'screens/logsign.dart';
-import 'screens/home.dart';
-import 'components/auth.dart';
-import '/components/app_theme.dart';
-import 'screens/splash.dart';
+import 'online/components/constants.dart';
+import 'online/screens/login.dart';
+import 'online/screens/logsign.dart';
+import 'online/screens/home.dart';
+import 'online/components/auth.dart';
+import 'online/components/app_theme.dart';
+import 'online/screens/splash.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
+import 'package:flutter/material.dart';
+import 'package:telephony/telephony.dart';
+import 'offline/screens/all_cards.dart';
+import 'offline/services/all_sms.dart';
+import 'dart:core';
+import 'offline/screens/all_charts.dart';
+import 'dart:math';
+import 'package:collection/collection.dart';
+import 'offline/screens/all_popup.dart';
+import 'offline/screens/all_beautiful_charts.dart';
+import 'package:intl/intl.dart';
+import 'package:animated_splash_screen/animated_splash_screen.dart';
+import 'package:page_transition/page_transition.dart';
+import 'offline/screens/onboarding.dart';
+import 'package:shared_preferences/shared_preferences.dart';
+import 'offline/offline_home.dart';
 
 void main() async {
   await dotenv.load();
-  runApp(MyApps());
+  runApp(MoneyMetriz());
 
 // Your project ID
 }
 
-class MyApps extends StatelessWidget {
-  const MyApps({Key? key}) : super(key: key);
+class MoneyMetriz extends StatefulWidget {
+  @override
+  _MoneyMetrizState createState() => _MoneyMetrizState();
+}
+
+class _MoneyMetrizState extends State<MoneyMetriz> {
+  var userselectedpage = '';
+  @override
+  void initState() {
+    super.initState();
+    checkSelectedScreen();
+  }
+
+  checkSelectedScreen() async {
+    var uds = await _checkSelectedScreen();
+    setState(() {
+      userselectedpage = uds;
+    });
+  }
 
   // This widget is the root of your application.
   @override
@@ -83,7 +116,108 @@ class MyApps extends StatelessWidget {
         //       ),
         //     )),
         // home: Auth(),
-        home: getsplash());
+        home: getsplash(userselectedpage));
+  }
+}
+
+_checkSelectedScreen() async {
+  SharedPreferences prefs = await SharedPreferences.getInstance();
+  var _getSelectedScreen = prefs.getString('user_selected_state') ?? '';
+  return _getSelectedScreen;
+}
+
+Widget getsplash(String userselectedpage) {
+  return AnimatedSplashScreen(
+    backgroundColor: Colors.transparent,
+    splashIconSize: 250,
+    splash: 'assets/images/splash.png',
+    animationDuration: Duration(seconds: 2),
+    nextScreen: goToNextScreen(userselectedpage),
+    splashTransition: SplashTransition.fadeTransition,
+    pageTransitionType: PageTransitionType.fade,
+  );
+}
+
+Widget goToNextScreen(screen) {
+  if (screen == 'online') {
+    return BaseScreen();
+  } else if (screen == 'offline') {
+    return OfflineApp();
+  } else {
+    return PageSelectScreen();
+  }
+}
+
+class PageSelectScreen extends StatefulWidget {
+  const PageSelectScreen({Key? key}) : super(key: key);
+
+  @override
+  _pageSelectScreenState createState() => _pageSelectScreenState();
+}
+
+class _pageSelectScreenState extends State<PageSelectScreen> {
+  var _selectedScreen = 'online';
+  _submitDataToSharedPrefs(String text) async {
+    SharedPreferences prefs = await SharedPreferences.getInstance();
+    await prefs.setString('user_selected_state', text);
+    // print('Text saved to shared preferences: $text');
+  }
+
+  _checkSelectedScreen() async {
+    SharedPreferences prefs = await SharedPreferences.getInstance();
+    var _getSelectedScreen = prefs.getString('user_selected_state') ?? '';
+    setState(() {
+      _selectedScreen = '';
+    });
+  }
+
+  void initState() {
+    super.initState();
+    _checkSelectedScreen();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    if (_selectedScreen == 'online') {
+      return BaseScreen();
+    } else if (_selectedScreen == 'offline') {
+      return OfflineApp();
+    } else
+      return Scaffold(
+        appBar: AppBar(
+          centerTitle: true,
+          title: Text(
+            'Select Manual or Online',
+            style: TextStyle(fontWeight: FontWeight.bold),
+          ),
+        ),
+        body: Center(
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              ElevatedButton(
+                onPressed: () async {
+                  await _submitDataToSharedPrefs('offline');
+                  Navigator.pushReplacement(context,
+                      MaterialPageRoute(builder: (context) => OfflineApp()));
+                },
+                child: Text('Offline Automated'),
+              ),
+              SizedBox(
+                height: 20,
+              ),
+              ElevatedButton(
+                onPressed: () async {
+                  await _submitDataToSharedPrefs('online');
+                  Navigator.pushReplacement(context,
+                      MaterialPageRoute(builder: (context) => BaseScreen()));
+                },
+                child: Text('Manual Online'),
+              ),
+            ],
+          ),
+        ),
+      );
   }
 }
 
