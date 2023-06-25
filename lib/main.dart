@@ -27,13 +27,30 @@ import 'offline/offline_home.dart';
 
 void main() async {
   await dotenv.load();
-  runApp(OnlineApp());
+  runApp(MoneyMetriz());
 
 // Your project ID
 }
 
-class OnlineApp extends StatelessWidget {
-  const OnlineApp({Key? key}) : super(key: key);
+class MoneyMetriz extends StatefulWidget {
+  @override
+  _MoneyMetrizState createState() => _MoneyMetrizState();
+}
+
+class _MoneyMetrizState extends State<MoneyMetriz> {
+  var userselectedpage = '';
+  @override
+  void initState() {
+    super.initState();
+    checkSelectedScreen();
+  }
+
+  checkSelectedScreen() async {
+    var uds = await _checkSelectedScreen();
+    setState(() {
+      userselectedpage = uds;
+    });
+  }
 
   // This widget is the root of your application.
   @override
@@ -99,7 +116,35 @@ class OnlineApp extends StatelessWidget {
         //       ),
         //     )),
         // home: Auth(),
-        home: getsplash());
+        home: getsplash(userselectedpage));
+  }
+}
+
+_checkSelectedScreen() async {
+  SharedPreferences prefs = await SharedPreferences.getInstance();
+  var _getSelectedScreen = prefs.getString('user_selected_state') ?? '';
+  return _getSelectedScreen;
+}
+
+Widget getsplash(String userselectedpage) {
+  return AnimatedSplashScreen(
+    backgroundColor: Colors.transparent,
+    splashIconSize: 250,
+    splash: 'assets/images/splash.png',
+    animationDuration: Duration(seconds: 2),
+    nextScreen: goToNextScreen(userselectedpage),
+    splashTransition: SplashTransition.fadeTransition,
+    pageTransitionType: PageTransitionType.fade,
+  );
+}
+
+Widget goToNextScreen(screen) {
+  if (screen == 'online') {
+    return BaseScreen();
+  } else if (screen == 'offline') {
+    return OfflineApp();
+  } else {
+    return PageSelectScreen();
   }
 }
 
@@ -134,7 +179,7 @@ class _pageSelectScreenState extends State<PageSelectScreen> {
   @override
   Widget build(BuildContext context) {
     if (_selectedScreen == 'online') {
-      return OnlineApp();
+      return BaseScreen();
     } else if (_selectedScreen == 'offline') {
       return OfflineApp();
     } else

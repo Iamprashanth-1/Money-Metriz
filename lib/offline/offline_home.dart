@@ -560,7 +560,7 @@ class _MyHomePage extends State<MyHomePage> {
                 },
                 child: SingleChildScrollView(
                     primary: false,
-                    padding: EdgeInsets.all(defaultPadding),
+                    padding: EdgeInsets.all(defaultPadding / 2),
                     child: Column(
                       mainAxisAlignment: MainAxisAlignment.spaceAround,
                       crossAxisAlignment: CrossAxisAlignment.center,
@@ -574,7 +574,7 @@ class _MyHomePage extends State<MyHomePage> {
                         ),
 
                         Container(
-                            height: MediaQuery.of(context).size.height / 2.3,
+                            height: MediaQuery.of(context).size.height / 2.2,
                             child: GridView.count(
                               crossAxisCount: 2,
                               mainAxisSpacing: 0.0,
@@ -582,7 +582,7 @@ class _MyHomePage extends State<MyHomePage> {
                               childAspectRatio: MediaQuery.of(context)
                                       .size
                                       .width /
-                                  (MediaQuery.of(context).size.height / 3.2),
+                                  (MediaQuery.of(context).size.height / 3.4),
                               physics: NeverScrollableScrollPhysics(),
                               children: [
                                 InfoCard(
@@ -1097,11 +1097,6 @@ class _MyHomePage extends State<MyHomePage> {
                     fontWeight: FontWeight.bold,
                   ))),
           DataColumn(
-              label: Text('Transaction Type',
-                  style: TextStyle(
-                    fontWeight: FontWeight.bold,
-                  ))),
-          DataColumn(
               label: Text('Amount',
                   style: TextStyle(
                     fontWeight: FontWeight.bold,
@@ -1201,10 +1196,10 @@ class TranstableRow extends DataTableSource {
     String amount = '';
     Color amount_color = Colors.red;
     if (data['transType'] == 'DEBIT') {
-      amount += '\u{207B} ';
+      amount += '\u{207B} ₹';
       amount += data['debitAmount'].toString();
     } else {
-      amount += '\u{002B} ';
+      amount += '\u{002B} ₹';
       amount += data['creditAmount'].toString();
       amount_color = Colors.green;
     }
@@ -1219,7 +1214,6 @@ class TranstableRow extends DataTableSource {
       DataCell(Text(DateFormat('MMM d, y h:mm:ss a')
           .format(DateTime.parse(data['transDate'])))),
       DataCell(Text("XX${data['accountNumber']}".toString())),
-      DataCell(Text(data['transType'].toString())),
       DataCell(Text(
         "$amount",
         selectionColor: amount_color,

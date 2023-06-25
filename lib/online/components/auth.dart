@@ -225,8 +225,8 @@ class AuthService {
           collectionId: collectionId,
           queries: [
             Query.equal("userId", [userId]),
-            // Query.greaterThanEqual("createdAt", '2021-09-01T00:00:00Z'),
-            // Query.lessThanEqual("createdAt", '2023-09-30T00:00:00Z'),
+            Query.greaterThanEqual("createdAt", '2021-09-01T00:00:00Z'),
+            Query.lessThanEqual("createdAt", '2023-09-30T00:00:00Z'),
             // Query.orderDesc("updatedAt"),
           ]);
       List<Map<String, dynamic>> documents = [];
@@ -260,39 +260,95 @@ class AuthService {
         return Navigator.pushReplacement(
             context, MaterialPageRoute(builder: (context) => LoginScreen()));
       }
+      return [];
+    }
+  }
+
+  Future getDocumentsBasedOnDateRange(
+      collectionId, context, startDate, endDate) async {
+    var userId = await getuser();
+    // print(startDate);
+    // print(endDate);
+    try {
+      final result = await Databases(Appwrite.instance.client).listDocuments(
+          databaseId: databaseId,
+          collectionId: collectionId,
+          queries: [
+            Query.equal("userId", [userId]),
+            Query.greaterThanEqual("createdAt", startDate),
+            Query.lessThanEqual("createdAt", endDate),
+            // Query.orderDesc("updatedAt"),
+          ]);
+      List<Map<String, dynamic>> documents = [];
+      result.documents.forEach((element) {
+        documents.add(element.data);
+        // if (tempdate.year == int.parse(year) &&
+        //     tempdate.month == int.parse(month)) {
+        //   print('juu');
+        //   documents.add(element.data);
+        // }
+        // documents.add(element.data);
+      });
+      // print(documents);
+
+      documents.sort((a, b) => b["createdAt"].compareTo(a["createdAt"]));
+
+      return documents;
+    } catch (e) {
+      if (e.toString().contains('unauthorized')) {
+        StatusMessagePopup(
+                message: 'Session Expired', duration: Duration(seconds: 2))
+            .show(context);
+        await removeuserSession();
+        // Navigator.popUntil(context, (route) => route.isFirst);
+        // Navigator.push(context, MaterialPageRoute(builder: (context) => LoginScreen()));
+        return Navigator.pushReplacement(
+            context, MaterialPageRoute(builder: (context) => LoginScreen()));
+      }
+      return [{}];
     }
   }
 
   Future<Map> getuserdata() async {
     var userid = await getuser();
     // print(userid);
-    final response =
-        await http.get(Uri.parse('$appwriteEndpoint/users/$userid'), headers: {
-      'content-type': 'application/json',
-      'X-Appwrite-Project': appwriteProjectId!,
-      'X-Appwrite-Response-Format': '1.0.0',
-      'X-Appwrite-Key': appwriteApiKey!,
-    }); //, 'origin': 'http://localhost:8080''));
-    Map<String, dynamic> userMap = json.decode(response.body);
+    try {
+      final response = await http
+          .get(Uri.parse('$appwriteEndpoint/users/$userid'), headers: {
+        'content-type': 'application/json',
+        'X-Appwrite-Project': appwriteProjectId!,
+        'X-Appwrite-Response-Format': '1.0.0',
+        'X-Appwrite-Key': appwriteApiKey!,
+      }); //, 'origin': 'http://localhost:8080''));
+      Map<String, dynamic> userMap = json.decode(response.body);
 
-    return userMap;
+      return userMap;
+    } catch (e) {
+      return {};
+    }
   }
 
   Future<String> updatepassword(password) async {
     var userid = await getuser();
     // print(userid);
-    final response = await http
-        .patch(Uri.parse('$appwriteEndpoint/users/$userid/password'), headers: {
-      'Content-type': 'application/x-www-form-urlencoded',
-      'X-Appwrite-Project': appwriteProjectId!,
-      'X-Appwrite-Response-Format': '1.0.0',
-      'X-Appwrite-Key': appwriteApiKey!,
-    }, body: {
-      "password": password
-    }); //, 'origin': 'http://localhost:8080''));
-    Map<String, dynamic> userMap = json.decode(response.body);
-    // print(userMap);
-    return "${userMap['status']}";
+    try {
+      final response = await http.patch(
+          Uri.parse('$appwriteEndpoint/users/$userid/password'),
+          headers: {
+            'Content-type': 'application/x-www-form-urlencoded',
+            'X-Appwrite-Project': appwriteProjectId!,
+            'X-Appwrite-Response-Format': '1.0.0',
+            'X-Appwrite-Key': appwriteApiKey!,
+          },
+          body: {
+            "password": password
+          }); //, 'origin': 'http://localhost:8080''));
+      Map<String, dynamic> userMap = json.decode(response.body);
+      // print(userMap);
+      return "${userMap['status']}";
+    } catch (e) {
+      return 'error';
+    }
   }
 
   Future<String> updateEmail(email) async {

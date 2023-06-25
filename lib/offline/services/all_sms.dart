@@ -64,14 +64,21 @@ class DatabaseHelper {
 
   Future<List<Map<String, dynamic>>> queryAll(filters) async {
     Database db = await database;
-
-    return await db.rawQuery(
-        "SELECT *,strftime('%Y', transDate) as year_col FROM sms_data WHERE 1=1 $filters order by transDate desc ");
+    try {
+      return await db.rawQuery(
+          "SELECT *,strftime('%Y', transDate) as year_col FROM sms_data WHERE 1=1 $filters order by transDate desc ");
+    } catch (e) {
+      return [];
+    }
   }
 
   Future<List<Map<String, dynamic>>> rawquery(query) async {
     Database db = await database;
-    return await db.rawQuery(query);
+    try {
+      return await db.rawQuery(query);
+    } catch (e) {
+      return [];
+    }
   }
 
   Future remove(accounts) async {

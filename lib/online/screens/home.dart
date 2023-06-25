@@ -35,6 +35,7 @@ class _ExpenseTrackerHomePageState extends State<ExpenseTrackerHomePage> {
   int _sortColumnIndex = 0;
   bool _sortAscending = true;
   List<Map<String, dynamic>> _data = [];
+  List<Map<String, dynamic>> _dataBasedOnDateRange = [];
   List<Map<String, dynamic>> _monthlyBudget = [];
   String MonthlyBudget = '0';
   double totaltranscount = 0.0;
@@ -48,7 +49,7 @@ class _ExpenseTrackerHomePageState extends State<ExpenseTrackerHomePage> {
   bool _isMonlthyBudgetLoading = false;
   late DateTime _selectedFromDate;
   late DateTime _selectedToDate;
-
+  DateTime datenow = DateTime.now();
   String currentSelectedMonth = '';
   String currentSelectedYear = '';
 
@@ -70,7 +71,6 @@ class _ExpenseTrackerHomePageState extends State<ExpenseTrackerHomePage> {
   var checkBudgetAdded = false;
   final TextEditingController _controllerBudgetAdded = TextEditingController();
 
-  DateTime datenow = DateTime.now();
   _submitDataToSharedPrefs(String text) async {
     SharedPreferences prefs = await SharedPreferences.getInstance();
     await prefs.setString('user_selected_state', text);
@@ -79,6 +79,8 @@ class _ExpenseTrackerHomePageState extends State<ExpenseTrackerHomePage> {
 
   void initState() {
     super.initState();
+    _selectedFromDate = datenow.subtract(Duration(days: 15));
+    _selectedToDate = datenow;
     for (int i = 1; i < 13; i++) {
       if (datenow.month == i) {
         _options_months[i.toString()] = true;
@@ -320,10 +322,20 @@ class _ExpenseTrackerHomePageState extends State<ExpenseTrackerHomePage> {
     });
   }
 
+  getrangebasedtransactions() async {
+    var dfs = await AuthService().getDocumentsBasedOnDateRange(
+        tranactionCollectionId, context, _selectedFromDate, _selectedToDate);
+    setState(() {
+      _dataBasedOnDateRange = dfs;
+    });
+  }
+
   gettotaltrans() async {
     setState(() {
       _isLoading = true;
     });
+
+    await getrangebasedtransactions();
 
     var da = await AuthService().getDocuments(tranactionCollectionId,
         currentSelectedYear, currentSelectedMonth, context);
@@ -438,7 +450,7 @@ class _ExpenseTrackerHomePageState extends State<ExpenseTrackerHomePage> {
                   fit: BoxFit.cover,
                 )),
                 child: SingleChildScrollView(
-                  padding: EdgeInsets.all(defaultPadding),
+                  padding: EdgeInsets.all(defaultPadding / 3),
                   child: Column(
                     mainAxisAlignment: MainAxisAlignment.spaceAround,
                     crossAxisAlignment: CrossAxisAlignment.center,
@@ -908,7 +920,7 @@ class _ExpenseTrackerHomePageState extends State<ExpenseTrackerHomePage> {
                     fontWeight: FontWeight.bold,
                   ))),
         ],
-        source: TranstableRow(dataList: _data),
+        source: TranstableRow(dataList: _dataBasedOnDateRange),
         actions: [
           // Text(
           //   'From Date : ${_selectedFromDate} \nTo Date       :${_selectedToDate}',
@@ -919,6 +931,7 @@ class _ExpenseTrackerHomePageState extends State<ExpenseTrackerHomePage> {
             onPressed: () async {
               // datepicker();
               await _showDateRangePicker(context);
+              await getrangebasedtransactions();
               // // await _showDatePicker(true, 'Select From Date');
               // // await _showDatePicker(false, 'Select To Date');
 
